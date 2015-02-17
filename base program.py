@@ -7,3 +7,29 @@ Created on Tue Feb 17 15:38:40 2015
 
 from functions import *
 
+from scipy.constants import *
+import os
+import numpy as np
+from scipy.optimize import curve_fit
+from scipy.stats.distributions import  t
+import matplotlib.pyplot as plt
+import math
+
+
+#create lists that are needed to store results
+lifetimelist=[]
+powerlist = []
+mobilitylist = []
+chargelist = []
+
+#important parameters for the program
+numberoffiles=2
+
+folder = './tempdata/'
+
+os.chdir(folder)
+
+#main program block
+for f in os.listdir("."):
+    filenameconditions = 'AVG' not in f and 'decay' not in f and 'p0' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1.csv' in f
+    readdata(f, numberoffiles, filenameconditions)
