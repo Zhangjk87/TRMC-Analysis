@@ -58,5 +58,5 @@ responseTime=(Q/math.pi / popt[1])
 print('response time =' + str(responseTime))
 
 with open('resonanceparams.py', 'w') as newfile:
-    newfile.write('Q='+str(Q)+'\nR0='+str(R0)+'\nresponseTime='+str(responseTime))
+    newfile.write('Q='+str(Q)+'\nR0='+str(R0)+'\nresponseTime='+str(responseTime)+'\nf0='+str(popt[1]))
 plt.show()

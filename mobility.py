@@ -14,6 +14,7 @@ import numpy as np
 
 import math
 from tempdata.sampleparams import *
+from tempdata.resonanceparams import *
 from cavityparams import *
 from scipy.constants import *
 
@@ -29,9 +30,9 @@ def mobility(dP, laserPower):
     #For now what this will do is just put dP in here, and it will calculate a mobility. Next step is build this into the fitting program for one click data analysis
     
     if dP<0:
-        sign = 1
-    else:
         sign = -1
+    else:
+        sign = 1
     
     
     #dP=0.0014#volts
@@ -44,13 +45,11 @@ def mobility(dP, laserPower):
     #print(format(I0, "e"))
     #careful with signs
     print(dP)
-    K=sign*Q*(1+sign*1/np.sqrt(R0))/(beta*e0*er*f0*pi*L)
-    print(K)
+    K=-sign*Q*(1+sign*1/np.sqrt(R0))/(beta*e0*er*f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
+    print('k=' + str(K))
     dG=dP/P0/K
-    print(dG)
+    #print(dG)
     
-    phimu=0.619703*dG/beta/I0/Fa/q
-    #print(phimu)
-    return(phimu)    
-    #ADD IN CORRECTION FOR ILLUMINATION FRACTION
-    
+    phimu=illuminationFactor*dG/beta/I0/Fa/q
+    print('mu = ' + str(phimu))
+    return(phimu)        

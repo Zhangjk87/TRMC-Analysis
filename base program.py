@@ -37,10 +37,15 @@ for f in os.listdir("."):
     filenameconditions = 'AVG' not in f and 'decay' not in f and 'p0' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1.csv' in f
     if filenameconditions:
         averagedData, pulseEnergy= readdata(f, numberoffiles)
-       
+        
+        
+        #to do: fit lifetime here        
+        
         averagedData=subtractOffset(averagedData)
         mobilityIndex = findmaxormin(averagedData)
         print(mobilityIndex)
         
+        #to do: fit mobility here.
         
+        #to do: deconvolution and fit mobility again, and plot both datas
     
