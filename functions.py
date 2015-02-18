@@ -129,3 +129,19 @@ def generateFitData(singleExponential, xdata, *popt):
 def saveFitParams(f, params):
     with open(f+'_fit_param_confidence_int.txt', 'w') as newfile:
         newfile.write('\n'.join(params))
+        
+def deconvolve(array, cavityLifetime):
+    cavitydecayfft=np.fft.fft(np.exp(-array[:,0]/cavityLifetime)/sum(np.exp(-array[:,0]/cavityLifetime)))
+    datafft=np.fft.fft(array[:,1])
+    fftconv=np.divide(datafft,cavitydecayfft)
+    deconv=np.fft.ifft(fftconv)
+    deconvolvedData=np.array([array[:,0], deconv]).T
+    return(deconvolvedData)
+
+def binData(array, width):
+    #Try to use averaging to make the data look nicer--http://stackoverflow.com/questions/21921178/binning-a-numpy-array
+    ydata=array[:,1]
+    ydataavg = ydata[:(ydata.size // width) * width].reshape(-1, width).mean(axis=1)
+    xdata=array[:,0]
+    xdataavg = xdata[:(xdata.size // width) * width].reshape(-1, width).mean(axis=1)
+    return(np.array([xdataavg, ydataavg]).T)

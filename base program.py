@@ -74,8 +74,14 @@ for f in os.listdir("."):
 
         mobility(dP, float(pulseEnergy))
 
-       
-
+        deconvolvedData=deconvolve(averagedData, responseTime)
+        
+        deconvolvedDataBinned=binData(deconvolvedData, 10)        
+        
+        #plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
+        #plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
+        #plt.plot(averagedData[:,0], averagedData[:,1])
+        #plt.show()
         
         
         
