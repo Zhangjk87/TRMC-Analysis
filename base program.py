@@ -42,12 +42,14 @@ if not os.path.exists(savefolder):
 for f in os.listdir("."):
     filenameconditions = 'AVG' not in f and 'decay' not in f and 'p0' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1.csv' in f
     if filenameconditions:
+        baseFileName= savefolder + f[:f.index('_1.csv')]
+        
         averagedData, pulseEnergy= readdata(f, numberoffiles)
         
         averagedData=subtractOffset(averagedData)
         
         #save averaged data that has had its offset fixed
-        saveArray(savefolder + f[:f.index('_1.csv')]+'_combined.csv', averagedData)        
+        saveArray(baseFileName+'_combined.csv', averagedData)        
         
                 #to do: fit lifetime here
         if singleExponential==True:
@@ -56,8 +58,12 @@ for f in os.listdir("."):
         if singleExponential==False:
             guess=[a, t1, b, t2, offset]
             popt, pcov, params = fitSingle(averagedData[:,0],averagedData[:,1], guess)  
-            
-        #save fit data and fit params
+        
+        #save fit data and fit params 
+        fitArray=generateFitData(singleExponential, averagedData[:,0], popt)
+        saveArray(baseFileName+'_lifetimefit.csv', fitArray)
+        saveFitParams(baseFileName+'_fitParams.txt', params)
+
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
        

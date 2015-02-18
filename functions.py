@@ -125,3 +125,7 @@ def generateFitData(singleExponential, xdata, popt):
         return (np.array([xdata, doubleExp(xdata, popt)]).T)
     else:
         raise RuntimeError('generateFitData')
+
+def saveFitParams(f, params):
+    with open(f+'_fit_param_confidence_int.txt', 'w') as newfile:
+        newfile.write('\n'.join(params))
