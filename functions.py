@@ -87,7 +87,6 @@ def fitDouble(xdata, ydata, guess):
     try:
         popt, pcov = curve_fit(doubleExp, xdata.T, ydata.T, p0=guess)
 
-
         print('a=' + str(popt[0]))
         print('t1='+ str(popt[1]))
         print('b=' + str(popt[2]))
@@ -119,6 +118,10 @@ def fitDouble(xdata, ydata, guess):
     except RuntimeError:
         print("Error - curve_fit failed")
         
-def saveFit(singleExponential, basefilename, xdata, popt, params):
+def generateFitData(singleExponential, xdata, popt):
     if singleExponential==True:
-        np.array([xdata, singleExp(xdata, guess)]).T
+        return (np.array([xdata, singleExp(xdata, popt)]).T)
+    elif singleExponential==False:
+        return (np.array([xdata, doubleExp(xdata, popt)]).T)
+    else:
+        raise RuntimeError('generateFitData')
