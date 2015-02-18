@@ -25,10 +25,10 @@ def mobility(dP, laserPower):
     pi=math.pi
     e0=epsilon_0#farads/meter
     q=e
-    freq = c/(wavelength*1e-9) #Hz
-    photonenergy = h*freq*1000
-    print(photonenergy)#in mJ
-    #mJ/photon, this is for 532nm right now
+    freq = c/(wavelength) #Hz
+    photonenergy = h*freq
+    print(photonenergy)#in J
+    #J/photon, this is for 532nm right now
     #For now what this will do is just put dP in here, and it will calculate a mobility. Next step is build this into the fitting program for one click data analysis
     
     if dP<0:
@@ -38,12 +38,12 @@ def mobility(dP, laserPower):
     
     
     #dP=0.0014#volts
-    #laserPower=0.1#mJ/pulse on power meter
+    #laserPower=    #J/pulse on power meter
     
-    spotarea=pi*(spotdiameter/2)**2#cm^2
-    #laserpower read in in microjoules
+    spotarea=pi*(spotdiameter/2)**2#m^2
+    #laserpower read in in joules
     print(laserPower)
-    I0=laserPower*1000/photonenergy/spotarea
+    I0=laserPower/photonenergy/spotarea
     print('I0='+str(I0))
     #print(format(I0, "e"))
     #careful with signs
@@ -53,6 +53,6 @@ def mobility(dP, laserPower):
     dG=dP/P0/K
     #print(dG)
     
-    phimu=illuminationFactor*dG/beta/I0/Fa/q
+    phimu=illuminationFactor*dG/beta/I0/Fa/q/1e-4
     print('mu = ' + str(phimu))
     return(phimu)        
