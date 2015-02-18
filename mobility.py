@@ -25,8 +25,10 @@ def mobility(dP, laserPower):
     pi=math.pi
     e0=epsilon_0#farads/meter
     q=e
-    spotdiameter=0.9#cm
-    photonenergy=3.734e-16#mJ/photon, this is for 532nm right now
+    freq = c/(wavelength*1e-9) #Hz
+    photonenergy = h*freq*1000
+    print(photonenergy)#in mJ
+    #mJ/photon, this is for 532nm right now
     #For now what this will do is just put dP in here, and it will calculate a mobility. Next step is build this into the fitting program for one click data analysis
     
     if dP<0:
@@ -40,13 +42,14 @@ def mobility(dP, laserPower):
     
     spotarea=pi*(spotdiameter/2)**2#cm^2
     #laserpower read in in microjoules
-    I0=laserPower*1e-3/photonenergy/spotarea
-    print(I0)
+    print(laserPower)
+    I0=laserPower*1000/photonenergy/spotarea
+    print('I0='+str(I0))
     #print(format(I0, "e"))
     #careful with signs
-    print(dP)
+    print('dP = ' + str(dP))
     K=-sign*Q*(1+sign*1/np.sqrt(R0))/(beta*e0*er*f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
-    print('k=' + str(K))
+    print('K=' + str(K))
     dG=dP/P0/K
     #print(dG)
     
