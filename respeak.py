@@ -13,18 +13,6 @@ from scipy.optimize import curve_fit
 #from scipy.stats.distributions import  t
 import math
 
-def trim(mydata, minwavenumber, maxwavenumber):
-    for counter, row in enumerate(mydata):
-            if row[0] > maxwavenumber:
-                mydata = np.delete(mydata, np.s_[counter:], axis=0)
-                break
-    for counter, row in enumerate(mydata):
-        if row[0] > minwavenumber:
-            mydata = np.delete(mydata, np.s_[:counter], axis=0)
-            break
-
-    return mydata
-
 def func(f, R0, f0, dW, m, b):
     return( (R0 + np.power((2*(f-f0))/dW, 2))/(1+np.power((2*(f-f0))/dW,2)) +m*f +b)
 
