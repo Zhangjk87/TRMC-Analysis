@@ -46,6 +46,8 @@ for f in os.listdir("."):
         baseFileName= savefolder + f[:f.index('_1.csv')]
         
         averagedData, pulseEnergy= readdata(f, numberoffiles)
+
+        pulseEnergy=float(pulseEnergy)*lightReachingSample        
         
         averagedData=subtractOffset(averagedData)
         
