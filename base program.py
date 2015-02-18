@@ -9,6 +9,7 @@ from cavityparams import *
 from tempdata.sampleparams import *
 
 from functions import *
+from mobility import *
 
 from scipy.constants import *
 import os
@@ -51,24 +52,28 @@ for f in os.listdir("."):
         #save averaged data that has had its offset fixed
         saveArray(baseFileName+'_combined.csv', averagedData)        
         
+        #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
+        mobilityIndex = findmaxormin(averagedData)
+        dP=averagedData[mobilityIndex,1]
+        print(mobilityIndex)        
+        
                 #to do: fit lifetime here
         if singleExponential==True:
             guess=[a, t1, offset]
-            popt, pcov, params = fitSingle(averagedData[:,0],averagedData[:,1], guess)      
-        if singleExponential==False:
+            popt, pcov, params = fitSingle(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)      
+        elif singleExponential==False:
             guess=[a, t1, b, t2, offset]
-            popt, pcov, params = fitSingle(averagedData[:,0],averagedData[:,1], guess)  
-        
+            popt, pcov, params = fitSingle(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)  
+
         #save fit data and fit params 
-        fitArray=generateFitData(singleExponential, averagedData[:,0], popt)
-        saveArray(baseFileName+'_lifetimefit.csv', fitArray)
+        fitArray=generateFitData(singleExponential, averagedData[mobilityIndex:,0], *popt)
+        saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
         saveFitParams(baseFileName+'_fitParams.txt', params)
 
-        
-        #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
+        mobility(dP, float(pulseEnergy))
+
        
-        mobilityIndex = findmaxormin(averagedData)
-        print(mobilityIndex)
+
         
         
         

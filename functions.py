@@ -118,11 +118,11 @@ def fitDouble(xdata, ydata, guess):
     except RuntimeError:
         print("Error - curve_fit failed")
         
-def generateFitData(singleExponential, xdata, popt):
+def generateFitData(singleExponential, xdata, *popt):
     if singleExponential==True:
-        return (np.array([xdata, singleExp(xdata, popt)]).T)
+        return (np.array([xdata, singleExp(xdata, *popt)]).T)
     elif singleExponential==False:
-        return (np.array([xdata, doubleExp(xdata, popt)]).T)
+        return (np.array([xdata, doubleExp(xdata, *popt)]).T)
     else:
         raise RuntimeError('generateFitData')
 
