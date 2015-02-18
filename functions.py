@@ -136,7 +136,7 @@ def deconvolve(array, cavityLifetime):
     fftconv=np.divide(datafft,cavitydecayfft)
     deconv=np.fft.ifft(fftconv)
     deconvolvedData=np.array([array[:,0], deconv]).T
-    return(deconvolvedData)
+    return(deconvolvedData.real)
 
 def binData(array, width):
     #Try to use averaging to make the data look nicer--http://stackoverflow.com/questions/21921178/binning-a-numpy-array
