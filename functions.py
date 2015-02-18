@@ -13,10 +13,10 @@ from scipy.stats.distributions import  t
 import matplotlib.pyplot as plt
 import math
 
-def singleexp(x, a, tau, offset):
+def singleExp(x, a, tau, offset):
     return a*np.exp(-(x)/tau) + offset
     
-def doubleexp(x, a, t1, b, t2, offset):
+def doubleExp(x, a, t1, b, t2, offset):
     return a*np.exp(-(x)/t1) + b*np.exp(-(x)/t2) + offset
 
 def readdata(f, numberofarrays):
@@ -45,12 +45,83 @@ def subtractOffset(array):
      datamean = np.mean(array[0:5001,1])
      array[:,1] = np.subtract(array[:,1], datamean)
      return array
-        ## np.savetxt('corrected.txt', TRMCdata, delimiter=',')
-        
-        
-        #datamean = np.mean(TRMCdata[0:5001,1])
-        #TRMCdata[:,1] = np.subtract(TRMCdata[:,1], datamean)
-        ## np.savetxt('corrected.txt', TRMCdata, delimiter=',')
+       
+def saveArray(f, array):
+    np.savetxt(f, array, delimiter=',')
 
-        #decay = TRMCdata[maxindex:]
+def fitSingle(xdata, ydata, guess):
+    try:
+        popt, pcov = curve_fit(singleExp, xdata.T, ydata.T, p0=guess)
+
+
+        print('a=' + str(popt[0]))
+        print('t1='+ str(popt[1]))
+        print('offset='+str(popt[2]))
+ 
+        #np.savetxt(f+'_fit.csv', popt, delimiter = ',')
+        #np.savetxt(f+'_fit_cov.csv', popt, delimiter = ',')
         
+        # from http://kitchingroup.cheme.cmu.edu/blog/2013/02/12/Nonlinear-curve-fitting-with-parameter-confidence-intervals/
+
+        alpha = 0.05 # 95% confidence interval = 100*(1-alpha)
+    
+        n = len(ydata)    # number of data points
+        p = len(popt) # number of parameters
+        
+        dof = max(0, n - p) # number of degrees of freedom
+        
+        # student-t value for the dof and confidence level
+        tval = t.ppf(1.0-alpha/2., dof)
+        params = []
+        for i, p,var in zip(range(n), popt, np.diag(pcov)):
+            sigma = var**0.5
+            params.append('p{0}: {1} [{2}  {3}]'.format(i, p,p - sigma*tval,p + sigma*tval))
+        #print(params)
+        #with open(f+'_fit_param_confidence_int.txt', 'w') as newfile:
+        #    newfile.write('\n'.join(params))
+        return(popt, pcov, params)
+    except RuntimeError:
+        print("Error - curve_fit failed")
+
+def fitDouble(xdata, ydata, guess):
+    try:
+        popt, pcov = curve_fit(doubleExp, xdata.T, ydata.T, p0=guess)
+
+        print('a=' + str(popt[0]))
+        print('t1='+ str(popt[1]))
+        print('b=' + str(popt[2]))
+        print('t2='+ str(popt[3]))
+        print('offset='+str(popt[4]))
+ 
+        #np.savetxt(f+'_fit.csv', popt, delimiter = ',')
+        #np.savetxt(f+'_fit_cov.csv', popt, delimiter = ',')
+        
+        # from http://kitchingroup.cheme.cmu.edu/blog/2013/02/12/Nonlinear-curve-fitting-with-parameter-confidence-intervals/
+
+        alpha = 0.05 # 95% confidence interval = 100*(1-alpha)
+    
+        n = len(ydata)    # number of data points
+        p = len(popt) # number of parameters
+        
+        dof = max(0, n - p) # number of degrees of freedom
+        
+        # student-t value for the dof and confidence level
+        tval = t.ppf(1.0-alpha/2., dof)
+        params = []
+        for i, p,var in zip(range(n), popt, np.diag(pcov)):
+            sigma = var**0.5
+            params.append('p{0}: {1} [{2}  {3}]'.format(i, p,p - sigma*tval,p + sigma*tval))
+        #print(params)
+        #with open(f+'_fit_param_confidence_int.txt', 'w') as newfile:
+        #    newfile.write('\n'.join(params))
+        return(popt, pcov, params)
+    except RuntimeError:
+        print("Error - curve_fit failed")
+        
+def generateFitData(singleExponential, xdata, popt):
+    if singleExponential==True:
+        return (np.array([xdata, singleExp(xdata, popt)]).T)
+    elif singleExponential==False:
+        return (np.array([xdata, doubleExp(xdata, popt)]).T)
+    else:
+        raise RuntimeError('generateFitData')
