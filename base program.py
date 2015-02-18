@@ -6,6 +6,7 @@ Created on Tue Feb 17 15:38:40 2015
 """
 
 from cavityparams import *
+from tempdata.sampleparams import *
 
 from functions import *
 
@@ -30,7 +31,12 @@ numberoffiles=2
 
 folder = './tempdata/'
 
+savefolder = './analysisresults/'
+
 os.chdir(folder)
+
+if not os.path.exists(savefolder):
+    os.makedirs(savefolder)
 
 #main program block
 for f in os.listdir("."):
@@ -38,14 +44,27 @@ for f in os.listdir("."):
     if filenameconditions:
         averagedData, pulseEnergy= readdata(f, numberoffiles)
         
-        
-        #to do: fit lifetime here        
-        
         averagedData=subtractOffset(averagedData)
-        saveArray(f[:f.index('_1.csv')+'averaged.csv', averagedData)        
         
+        #save averaged data that has had its offset fixed
+        saveArray(savefolder + f[:f.index('_1.csv')]+'_combined.csv', averagedData)        
+        
+                #to do: fit lifetime here
+        if singleExponential==True:
+            guess=[a, t1, offset]
+            popt, pcov, params = fitSingle(averagedData[:,0],averagedData[:,1], guess)      
+        if singleExponential==False:
+            guess=[a, t1, b, t2, offset]
+            popt, pcov, params = fitSingle(averagedData[:,0],averagedData[:,1], guess)  
+            
+        #save fit data and fit params
+        
+        #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
+       
         mobilityIndex = findmaxormin(averagedData)
         print(mobilityIndex)
+        
+        
         
         #to do: fit mobility here.
         
