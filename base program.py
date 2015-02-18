@@ -42,6 +42,8 @@ for f in os.listdir("."):
         #to do: fit lifetime here        
         
         averagedData=subtractOffset(averagedData)
+        saveArray(f[:f.index('_1.csv')+'averaged.csv', averagedData)        
+        
         mobilityIndex = findmaxormin(averagedData)
         print(mobilityIndex)
         
