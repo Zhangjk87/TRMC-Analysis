@@ -19,6 +19,15 @@ from scipy.stats.distributions import  t
 import matplotlib.pyplot as plt
 import math
 
+#to make fonts from plots look normal
+import matplotlib
+matplotlib.rcParams['mathtext.fontset'] = 'custom'
+matplotlib.rcParams['mathtext.rm'] = 'Bitstream Vera Sans'
+matplotlib.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
+matplotlib.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
+matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
+
+
 from tempdata.resonanceparams import *
 
 #create lists that are needed to store results
@@ -90,12 +99,10 @@ for f in os.listdir("."):
         deconvolvedDataBinned=binData(deconvolvedData, 10)        
         
         #plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
-        plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
-        plt.plot(averagedData[:,0], averagedData[:,1])
-        plt.show()
-        plt.close()
-        
-        
+        #plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
+        #plt.plot(averagedData[:,0], averagedData[:,1])
+        #plt.show()
+        #plt.close()
         
         mobilityDeconvIndex = findmaxormin(deconvolvedDataBinned)
         #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
@@ -103,14 +110,84 @@ for f in os.listdir("."):
         print('dPDeconv='+str(dPDeconv))
         mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy))
         
+        #make plots
+        plt.figure(1)
+        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], label=format(pulseEnergy/1e-6, '.0f'))
+        plt.figure(2)
+        plt.plot(deconvolvedDataBinned[:,0]/1e-9,deconvolvedDataBinned[:,1],label=format(pulseEnergy/1e-6, '.0f'))
         
+        plt.figure(3)
+        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1])
+        plt.plot(fitArray[:,0]/1e-9, fitArray[:,1])
+        plt.xlabel('Time (ns)')
+        plt.ylabel('Signal (V)')
+        plt.savefig(baseFileName+'_fit.png')
+        plt.close()
         #write stuff to file
 if singleExponential==True:
     summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
 elif singleExponential==False:
     summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
-    
+
 saveArray(savefolder + 'summary.csv', summary)
+
+pulseenergylistuJ=np.array(pulseenergylist)/1e-6
+
+#make more plots
+plt.figure(1)
+plt.xlabel('Time (ns)')
+plt.ylabel('Signal (V)')
+plt.xlim(left=0)
+plt.legend()
+plt.savefig(savefolder+'decays.png')
+plt.close()
+
+plt.figure(2)
+plt.xlabel('Time (ns)')
+plt.ylabel('Signal (V)')
+plt.xlim(left=0)
+plt.legend()
+plt.savefig(savefolder+'deconvolved_decays.png')
+plt.close()
+
+plt.figure(4)
+plt.plot(pulseenergylistuJ, mobilitylist, 'o')
+plt.xlabel('Laser intensity ($\mu$J)')
+plt.ylabel('Mobility ($\mathrm{cm^2V^{-1}s^{-1}}$)')
+plt.savefig(savefolder+'mobilities.png')
+plt.close()
+
+plt.figure(5)
+plt.plot(pulseenergylistuJ, mobilitydeconvlist, 'o')
+plt.xlabel('Laser intensity ($\mu$J)')
+plt.ylabel('Mobility ($\mathrm{cm^2V^{-1}s^{-1}}$)')
+plt.savefig(savefolder+'deconvolved_mobilities.png')
+plt.close()
+
+    
+if singleExponential==True:
+    plt.figure(6)
+    plt.plot(pulseenergylistuJ, t1list, 'o')
+    plt.xlabel('Laser intensity ($\mu$J)')
+    plt.ylabel('Lifetime (ns)')
+    plt.savefig(savefolder+'lifetimes.png')
+    plt.close()
+elif singleExponential==False:
+    plt.figure(6)
+    plt.plot(pulseenergylistuJ, t1list, 'o', label='$\tau_1$')
+    plt.plot(pulseenergylistuJ, t2list, 'o', label='$\tau_2$')
+    plt.xlabel('Laser intensity ($\mu$J)')
+    plt.ylabel('Lifetime (ns)')
+    plt.legend()
+    plt.savefig(savefolder+'lifetimes.png')
+    plt.close()
+    plt.figure(7)
+    plt.plot(pulseenergylistuJ, ablist, 'o')
+    plt.xlabel(u'Laser intensity (\u00B5 J)')
+    plt.ylabel('Ratio of fit amplitudes for $\tau_1/\tau_2$')
+    plt.savefig(savefolder+'timeconstantratios.png')
+    plt.close()
+
         
         #to do: deconvolution and fit mobility again, and plot both datas
     
