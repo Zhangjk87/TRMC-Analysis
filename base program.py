@@ -6,11 +6,10 @@ Created on Tue Feb 17 15:38:40 2015
 """
 
 from cavityparams import *
-from tempdata.sampleparams import *
+
 
 from functions import *
 from mobility import *
-
 from scipy.constants import *
 import os
 import numpy as np
@@ -28,7 +27,18 @@ matplotlib.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
 matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
 
 
-from tempdata.resonanceparams import *
+
+
+
+#important parameters for the program
+numberoffiles=2
+
+folder = '.\tempdata'
+
+import sys
+sys.path.insert(0, folder)
+from sampleparams import *
+from resonanceparams import *
 
 #create lists that are needed to store results
 t1list=[]
@@ -39,11 +49,6 @@ pulseenergylist = []
 mobilitylist = []
 mobilitydeconvlist = []
 chargelist = []
-
-#important parameters for the program
-numberoffiles=2
-
-folder = './tempdata/'
 
 savefolder = './analysisresults/'
 
@@ -90,7 +95,7 @@ for f in os.listdir("."):
         saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
         saveFitParams(baseFileName+'_fitParams.txt', params)
 
-        mobilitylist.append(mobility(dP, pulseEnergy))       
+        mobilitylist.append(mobility(dP, pulseEnergy,folder))       
 
 
         #this part of program does deconvolution
@@ -108,19 +113,19 @@ for f in os.listdir("."):
         #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
         dPDeconv=deconvolvedDataBinned[mobilityDeconvIndex,1]
         print('dPDeconv='+str(dPDeconv))
-        mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy))
+        mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy,folder))
         
         #make plots
         plt.figure(1)
-        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], label=format(pulseEnergy/1e-6, '.0f'))
+        plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         plt.figure(2)
-        plt.plot(deconvolvedDataBinned[:,0]/1e-9,deconvolvedDataBinned[:,1],label=format(pulseEnergy/1e-6, '.0f'))
+        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         
         plt.figure(3)
         plt.plot(averagedData[:,0]/1e-9, averagedData[:,1])
         plt.plot(fitArray[:,0]/1e-9, fitArray[:,1])
         plt.xlabel('Time (ns)')
-        plt.ylabel('Signal (V)')
+        plt.ylabel('$\mathrm{\Delta}$P(V)')
         plt.savefig(baseFileName+'_fit.png')
         plt.close()
         #write stuff to file
@@ -136,7 +141,7 @@ pulseenergylistuJ=np.array(pulseenergylist)/1e-6
 #make more plots
 plt.figure(1)
 plt.xlabel('Time (ns)')
-plt.ylabel('Signal (V)')
+plt.ylabel('$\mathrm{\Delta P/P_0}$')
 plt.xlim(left=0)
 plt.legend()
 plt.savefig(savefolder+'decays.png')
@@ -144,7 +149,7 @@ plt.close()
 
 plt.figure(2)
 plt.xlabel('Time (ns)')
-plt.ylabel('Signal (V)')
+plt.ylabel('$\mathrm{\Delta P/P_0}$')
 plt.xlim(left=0)
 plt.legend()
 plt.savefig(savefolder+'deconvolved_decays.png')

@@ -13,19 +13,22 @@ import numpy as np
 
 
 import math
-from tempdata.sampleparams import *
-from tempdata.resonanceparams import *
+
 from cavityparams import *
 from scipy.constants import *
 
 
-def mobility(dP, laserPower):
+def mobility(dP, laserPower, folder):
+    import sys
+    sys.path.insert(0, folder)
+    import sampleparams
+    import resonanceparams
     #define absolute constants that won't change between data sets
 
     pi=math.pi
     e0=epsilon_0#farads/meter
     q=e
-    freq = c/(wavelength) #Hz
+    freq = c/(sampleparams.wavelength) #Hz
     photonenergy = h*freq
     print(photonenergy)#in J
     #J/photon, this is for 532nm right now
@@ -40,7 +43,7 @@ def mobility(dP, laserPower):
     #dP=0.0014#volts
     #laserPower=    #J/pulse on power meter
     
-    spotarea=pi*(spotdiameter/2)**2#m^2
+    spotarea=pi*(sampleparams.spotdiameter/2)**2#m^2
     #laserpower read in in joules
     print(laserPower)
     I0=laserPower/photonenergy/spotarea
@@ -48,11 +51,11 @@ def mobility(dP, laserPower):
     #print(format(I0, "e"))
     #careful with signs
     print('dP = ' + str(dP))
-    K=-sign*Q*(1+sign*1/np.sqrt(R0))/(beta*e0*er*f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
+    K=-sign*resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
     print('K=' + str(K))
-    dG=dP/P0/K
+    dG=dP/sampleparams.P0/K
     #print(dG)
     
-    phimu=illuminationFactor*dG/beta/I0/Fa/q/1e-4
+    phimu=sampleparams.illuminationFactor*dG/beta/I0/sampleparams.Fa/q/1e-4
     print('mu = ' + str(phimu))
     return(phimu)        
