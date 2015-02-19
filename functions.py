@@ -12,6 +12,7 @@ from scipy.optimize import curve_fit
 from scipy.stats.distributions import  t
 import matplotlib.pyplot as plt
 import math
+from scipy import signal
 
 def singleExp(x, a, tau, offset):
     return a*np.exp(-(x)/tau) + offset
@@ -132,6 +133,7 @@ def saveFitParams(f, params):
         
 def deconvolve(array, cavityLifetime):
     cavitydecayfft=np.fft.fft(np.exp(-array[:,0]/cavityLifetime)/sum(np.exp(-array[:,0]/cavityLifetime)))
+    #datafft=np.fft.fft(signal.wiener(array[:,1],mysize=13))
     datafft=np.fft.fft(array[:,1])
     fftconv=np.divide(datafft,cavitydecayfft)
     deconv=np.fft.ifft(fftconv)

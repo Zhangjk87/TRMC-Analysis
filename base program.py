@@ -22,9 +22,13 @@ import math
 from tempdata.resonanceparams import *
 
 #create lists that are needed to store results
-lifetimelist=[]
-powerlist = []
+t1list=[]
+if singleExponential==False:
+    t2list=[]
+    ablist=[]
+pulseenergylist = []
 mobilitylist = []
+mobilitydeconvlist = []
 chargelist = []
 
 #important parameters for the program
@@ -47,7 +51,10 @@ for f in os.listdir("."):
         
         averagedData, pulseEnergy= readdata(f, numberoffiles)
 
-        pulseEnergy=float(pulseEnergy)*lightReachingSample        
+        pulseEnergy=float(pulseEnergy)*lightReachingSample
+        pulseenergylist.append(pulseEnergy)
+        chargelist.append(0)
+        #also must output charge/QD, if necessary        
         
         averagedData=subtractOffset(averagedData)
         
@@ -66,26 +73,44 @@ for f in os.listdir("."):
         elif singleExponential==False:
             guess=[a, t1, b, t2, offset]
             popt, pcov, params = fitSingle(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)  
-
+            t2list.append(popt[3])
+            ablist.append(popt[0]/popt[2])
+        t1list.append(popt[1])
         #save fit data and fit params 
         fitArray=generateFitData(singleExponential, averagedData[mobilityIndex:,0], *popt)
         saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
         saveFitParams(baseFileName+'_fitParams.txt', params)
 
-        mobility(dP, float(pulseEnergy))
+        mobilitylist.append(mobility(dP, pulseEnergy))       
 
+
+        #this part of program does deconvolution
         deconvolvedData=deconvolve(averagedData, responseTime)
         
         deconvolvedDataBinned=binData(deconvolvedData, 10)        
         
         #plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
-        #plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
-        #plt.plot(averagedData[:,0], averagedData[:,1])
-        #plt.show()
+        plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
+        plt.plot(averagedData[:,0], averagedData[:,1])
+        plt.show()
+        plt.close()
         
         
         
-        #to do: fit mobility here.
+        mobilityDeconvIndex = findmaxormin(deconvolvedDataBinned)
+        #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
+        dPDeconv=deconvolvedDataBinned[mobilityDeconvIndex,1]
+        print('dPDeconv='+str(dPDeconv))
+        mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy))
+        
+        
+        #write stuff to file
+if singleExponential==True:
+    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+elif singleExponential==False:
+    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+    
+saveArray(savefolder + 'summary.csv', summary)
         
         #to do: deconvolution and fit mobility again, and plot both datas
     
