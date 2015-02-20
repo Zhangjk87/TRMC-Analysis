@@ -33,7 +33,7 @@ matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
 #important parameters for the program
 numberoffiles=2
 
-folder = '.\tempdata'
+folder = os.path.join('./tempdata')
 
 import sys
 sys.path.insert(0, folder)
@@ -50,9 +50,9 @@ mobilitylist = []
 mobilitydeconvlist = []
 chargelist = []
 
-savefolder = './analysisresults/'
-
 os.chdir(folder)
+
+savefolder=os.path.join('./analysisresults/')
 
 if not os.path.exists(savefolder):
     os.makedirs(savefolder)
@@ -125,7 +125,7 @@ for f in os.listdir("."):
         plt.plot(averagedData[:,0]/1e-9, averagedData[:,1])
         plt.plot(fitArray[:,0]/1e-9, fitArray[:,1])
         plt.xlabel('Time (ns)')
-        plt.ylabel('$\mathrm{\Delta}$P(V)')
+        plt.ylabel('$\mathrm{\Delta}$P (V)')
         plt.savefig(baseFileName+'_fit.png')
         plt.close()
         #write stuff to file
@@ -158,14 +158,14 @@ plt.close()
 plt.figure(4)
 plt.plot(pulseenergylistuJ, mobilitylist, 'o')
 plt.xlabel('Laser intensity ($\mu$J)')
-plt.ylabel('Mobility ($\mathrm{cm^2V^{-1}s^{-1}}$)')
+plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
 plt.savefig(savefolder+'mobilities.png')
 plt.close()
 
 plt.figure(5)
 plt.plot(pulseenergylistuJ, mobilitydeconvlist, 'o')
 plt.xlabel('Laser intensity ($\mu$J)')
-plt.ylabel('Mobility ($\mathrm{cm^2V^{-1}s^{-1}}$)')
+plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
 plt.savefig(savefolder+'deconvolved_mobilities.png')
 plt.close()
 
