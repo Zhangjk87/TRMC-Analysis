@@ -16,8 +16,10 @@ import math
 def func(f, R0, f0, dW, m, b):
     return( (R0 + np.power((2*(f-f0))/dW, 2))/(1+np.power((2*(f-f0))/dW,2)) +m*f +b)
 
+#res_peak_folder = 'tempdata'
+res_peak_folder = input('path containing res peak data: ')
 
-os.chdir('.\tempdata')
+os.chdir(res_peak_folder)
 f='res peak.txt'
 
 respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
@@ -27,7 +29,7 @@ respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
 respeak[:,1] = np.divide(respeak[:,1], np.amax(respeak[:,1])) #normalize resonance peak so maximum at 1
 xdata = respeak[:,0]
 ydata = respeak[:,1]
-guess = [.1, 8.89e9, 1e7, 1e-8, 0]
+guess = [.1, 8.87e9, 1.5e7, 1e-8, 0]
 
 #plt.show()
 popt, pcov = curve_fit(func, xdata.T, ydata.T, p0=guess)

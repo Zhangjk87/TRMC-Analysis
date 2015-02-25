@@ -55,9 +55,9 @@ def fitSingle(xdata, ydata, guess):
         popt, pcov = curve_fit(singleExp, xdata.T, ydata.T, p0=guess)
 
 
-        print('a=' + str(popt[0]))
-        print('t1='+ str(popt[1]))
-        print('offset='+str(popt[2]))
+        print('a = ' + str(popt[0]))
+        print('t1 = '+ str(popt[1]))
+        print('offset = '+str(popt[2]))
  
         #np.savetxt(f+'_fit.csv', popt, delimiter = ',')
         #np.savetxt(f+'_fit_cov.csv', popt, delimiter = ',')
@@ -88,11 +88,11 @@ def fitDouble(xdata, ydata, guess):
     try:
         popt, pcov = curve_fit(doubleExp, xdata.T, ydata.T, p0=guess)
 
-        print('a=' + str(popt[0]))
-        print('t1='+ str(popt[1]))
-        print('b=' + str(popt[2]))
-        print('t2='+ str(popt[3]))
-        print('offset='+str(popt[4]))
+        print('a = ' + str(popt[0]))
+        print('t1 = '+ str(popt[1]))
+        print('b = ' + str(popt[2]))
+        print('t2 = '+ str(popt[3]))
+        print('offset = '+str(popt[4]))
  
         #np.savetxt(f+'_fit.csv', popt, delimiter = ',')
         #np.savetxt(f+'_fit_cov.csv', popt, delimiter = ',')

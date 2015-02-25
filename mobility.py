@@ -30,7 +30,7 @@ def mobility(dP, laserPower, folder):
     q=e
     freq = c/(sampleparams.wavelength) #Hz
     photonenergy = h*freq
-    print(photonenergy)#in J
+    #print(photonenergy)#in J
     #J/photon, this is for 532nm right now
     #For now what this will do is just put dP in here, and it will calculate a mobility. Next step is build this into the fitting program for one click data analysis
     
@@ -45,14 +45,14 @@ def mobility(dP, laserPower, folder):
     
     spotarea=pi*(sampleparams.spotdiameter/2)**2#m^2
     #laserpower read in in joules
-    print(laserPower)
+    #print(laserPower)
     I0=laserPower/photonenergy/spotarea
-    print('I0='+str(I0))
+    print('I0 = '+str(I0))
     #print(format(I0, "e"))
     #careful with signs
     print('dP = ' + str(dP))
     K=-sign*resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
-    print('K=' + str(K))
+    print('K = ' + str(K))
     dG=dP/sampleparams.P0/K
     #print(dG)
     

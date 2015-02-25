@@ -11,3 +11,5 @@ singleExponential=True
 a=2e-4
 t1=10e-8
 offset=0
+b=1e-4
+t2=1e-6
