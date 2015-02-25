@@ -29,12 +29,8 @@ matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
 #numberoffiles = 2
 numberoffiles = int(input('number of files = '))
 
-<<<<<<< HEAD
 #folder = 'tempdata'
 folder = input('path containing TRMC data: ')
-=======
-folder = os.path.join('./tempdata')
->>>>>>> origin/master
 
 import sys
 sys.path.insert(0, folder)
