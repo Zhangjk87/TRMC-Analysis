@@ -91,8 +91,8 @@ for f in os.listdir("."):
         fitArray = generateFitData(singleExponential, averagedData[mobilityIndex:,0], *popt)
         saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
         saveFitParams(baseFileName+'_fitParams.txt', params)
-
-        mobilitylist.append(mobility(dP, pulseEnergy,folder))       
+        phimu, I0 = mobility(dP, pulseEnergy,folder)
+        mobilitylist.append(phimu)       
 
 
         #this part of program does deconvolution
@@ -111,6 +111,7 @@ for f in os.listdir("."):
         dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
         print('dPDeconv = '+str(dPDeconv))
         mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy,folder))
+        chargelist.append(chargePerQD(I0, Fa, radius, packingFraction, thickness))
         
         #make plots
         plt.figure(1)
