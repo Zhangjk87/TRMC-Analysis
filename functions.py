@@ -151,4 +151,6 @@ def binData(array, width):
 def chargePerQD(I0, Fa, radius, packingFraction, thickness):
     #charges per QD = (Io*Fa*Volume_of_one_nanocrystal) / (packing_fraction*thickness)
     #packing_fraction = 0.6
-    return((I0*Fa*(4/3*math.pi*radius**3)/(packingFraction*thickness)))
+    charge = (I0*Fa*(4/3*math.pi*radius**3)/(packingFraction*thickness))
+    print('chargePerQD='+str(charge))
+    return(charge)

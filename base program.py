@@ -64,7 +64,6 @@ for f in os.listdir("."):
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
         pulseenergylist.append(pulseEnergy)
-        chargelist.append(0)
         #also must output charge/QD, if necessary        
         
         averagedData = subtractOffset(averagedData)
@@ -110,9 +109,11 @@ for f in os.listdir("."):
         #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
         dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
         print('dPDeconv = '+str(dPDeconv))
-        mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy,folder))
-        chargelist.append(chargePerQD(I0, Fa, radius, packingFraction, thickness))
+        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder)
+        mobilitydeconvlist.append(phimudeconv)
         
+        chargelist.append(chargePerQD(I0, Fa, radius, packingFraction, thickness))
+        #chargelist.append(0)
         #make plots
         plt.figure(1)
         plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
