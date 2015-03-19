@@ -20,17 +20,27 @@ def singleExp(x, a, tau, offset):
 def doubleExp(x, a, t1, b, t2, offset):
     return a*np.exp(-(x)/t1) + b*np.exp(-(x)/t2) + offset
 
-def readdata(f, numberofarrays):
+def readdata(f):
     #print(f)
     print(f[f.index('_')+1:f.index('J')], 'J') #current laser power
-    pulseenergy = format(float(f[f.index('_')+1:f.index('J')]))
+    pulseenergy = float(f[f.index('_')+1:f.index('J')])
+    p0=f[f.index('p0_')+3:f.index('V')] #current laser power
+    p0val=float(p0)
     TRMCdata = np.genfromtxt(f, delimiter=',', skip_header=4, usecols=(0,2))
-    for i in range(2,numberofarrays+1):
+    numberofarrays=1
+    i=2
+    while True:    
         #print(f[:f.index('_1.csv')]+'_' + str(i) +'.csv')
-        tempTRMCdata = np.genfromtxt(f[:f.index('_1.csv')]+'_' + str(i) +'.csv', delimiter=',', skip_header=4, usecols=(0,2))
-        TRMCdata[:,1] = np.add(TRMCdata[:,1], tempTRMCdata[:,1])
+        try: 
+            tempTRMCdata = np.genfromtxt(f[:f.index('_1_p0')]+ '_' + str(i) +'_p0_' + p0 + 'V.csv', delimiter=',', skip_header=4, usecols=(0,2))
+            TRMCdata[:,1] = np.add(TRMCdata[:,1], tempTRMCdata[:,1])
+            i=i+1
+            numberofarrays=numberofarrays+1
+        except IOError:
+            break
     TRMCdata[:,1] = np.divide(TRMCdata[:,1], numberofarrays)
-    return (TRMCdata, pulseenergy)
+    print('numberofarrays='+str(numberofarrays))
+    return(TRMCdata, pulseenergy, p0val)
     
 def findmaxormin(array):
     if (abs(np.amax(array[:,1])) > abs(np.amin(array[:,1]))):
@@ -43,7 +53,7 @@ def findmaxormin(array):
         #return None
 
 def subtractOffset(array):
-     datamean = np.mean(array[0:5001,1])
+     datamean = np.mean(array[0:np.where(array[:,0]==0)[0],1])
      array[:,1] = np.subtract(array[:,1], datamean)
      return array
        
@@ -87,7 +97,6 @@ def fitSingle(xdata, ydata, guess):
 def fitDouble(xdata, ydata, guess):
     try:
         popt, pcov = curve_fit(doubleExp, xdata.T, ydata.T, p0=guess)
-
         print('a = ' + str(popt[0]))
         print('t1 = '+ str(popt[1]))
         print('b = ' + str(popt[2]))

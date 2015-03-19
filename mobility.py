@@ -18,7 +18,7 @@ from cavityparams import *
 from scipy.constants import *
 
 
-def mobility(dP, laserPower, folder):
+def mobility(dP, laserPower, folder, P0):
     import sys
     sys.path.insert(0, folder)
     import sampleparams
@@ -53,7 +53,7 @@ def mobility(dP, laserPower, folder):
     print('dP = ' + str(dP))
     K=-sign*resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
     print('K = ' + str(K))
-    dG=dP/sampleparams.P0/K
+    dG=dP/P0/K
     #print(dG)
     
     phimu=sampleparams.illuminationFactor*dG/beta/I0/sampleparams.Fa/q/1e-4
