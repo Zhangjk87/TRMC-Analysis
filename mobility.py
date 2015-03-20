@@ -39,7 +39,6 @@ def mobility(dP, laserPower, folder, P0):
     else:
         sign = 1
     
-    
     #dP=0.0014#volts
     #laserPower=    #J/pulse on power meter
     
@@ -51,7 +50,7 @@ def mobility(dP, laserPower, folder, P0):
     #print(format(I0, "e"))
     #careful with signs
     print('dP = ' + str(dP))
-    K=-sign*resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
+    K=-resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a positive dP is "less negative" power so corresponds to an absorption
     print('K = ' + str(K))
     dG=dP/P0/K
     #print(dG)

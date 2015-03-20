@@ -44,14 +44,14 @@ chargelist = []
 
 os.chdir(folder)
 
-savefolder=os.path.join('./analysisresults/')
+savefolder=os.path.join('./analysisresultslong/')
 
 if not os.path.exists(savefolder):
     os.makedirs(savefolder)
 
 #main program block
 for f in os.listdir("."):
-    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f and 'long' not in f
+    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f and 'long' in f
     if filenameconditions:
         baseFileName = savefolder + f[:f.index('_1_p0')]
         
@@ -109,12 +109,12 @@ for f in os.listdir("."):
 #        print('dPDeconv = '+str(dPDeconv))
 #        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
 #        mobilitydeconvlist.append(phimudeconv)
-        
-        chargelist.append(chargePerQD(I0, Fa, radius, packingFraction, thickness))
+        charge=chargePerQD(I0, Fa, radius, packingFraction, thickness)
+        chargelist.append(charge)
         #chargelist.append(0)
         #make plots
         plt.figure(1)
-        plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
+        plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(charge, '.2f')))
 #        plt.figure(2)
 #        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         
@@ -154,8 +154,8 @@ plt.close()
 #plt.close()
 
 plt.figure(4)
-plt.plot(pulseenergylistuJ, mobilitylist, 'o')
-plt.xlabel('Laser intensity ($\mu$J)')
+plt.plot(chargelist, mobilitylist, 'o')
+plt.xlabel('Charge per Quantum Dot')
 plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
 plt.savefig(savefolder+'mobilities.png')
 plt.close()
@@ -170,24 +170,24 @@ plt.close()
     
 if singleExponential == True:
     plt.figure(6)
-    plt.plot(pulseenergylistuJ, np.array(t1list)/1e-9, 'o')
-    plt.xlabel('Laser intensity ($\mu$J)')
+    plt.plot(chargelist, np.array(t1list)/1e-9, 'o')
+    plt.xlabel('Charge per Quantum Dot')
     plt.ylabel('Lifetime (ns)')
     plt.savefig(savefolder+'lifetimes.png')
     plt.close()
 elif singleExponential == False:
     plt.figure(6)
-    plt.plot(pulseenergylistuJ, np.array(t1list)/1e-9, 'o', label=r'$\tau_1$')
-    plt.plot(pulseenergylistuJ, np.array(t2list)/1e-9, 'o', label=r'$\tau_2$')
-    plt.xlabel('Laser intensity ($\mu$J)')
+    plt.plot(chargelist, np.array(t1list)/1e-9, 'o', label=r'$\tau_1$')
+    plt.plot(chargelist, np.array(t2list)/1e-9, 'o', label=r'$\tau_2$')
+    plt.xlabel('Charge per Quantum Dot')
     plt.ylabel('Lifetime (ns)')
     plt.legend()
     plt.savefig(savefolder+'lifetimes.png')
     plt.close()
     plt.figure(7)
-    plt.plot(pulseenergylistuJ, ablist, 'o')
-    plt.xlabel(u'Laser intensity (\u00B5 J)')
-    plt.ylabel('Ratio of fit amplitudes for $\tau_1/\tau_2$')
+    plt.plot(chargelist, ablist, 'o')
+    plt.xlabel('Charge per Quantum Dot')
+    plt.ylabel(r'Ratio of fit amplitudes for $\tau_1/\tau_2$')
     plt.savefig(savefolder+'timeconstantratios.png')
     plt.close()
 
