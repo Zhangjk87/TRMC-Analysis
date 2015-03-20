@@ -25,6 +25,7 @@ def readdata(f):
     print(f[f.index('_')+1:f.index('J')], 'J') #current laser power
     pulseenergy = float(f[f.index('_')+1:f.index('J')])
     p0=f[f.index('p0_')+3:f.index('V')] #current laser power
+    print('P0 = ' + p0 + 'V')
     p0val=float(p0)
     TRMCdata = np.genfromtxt(f, delimiter=',', skip_header=4, usecols=(0,2))
     numberofarrays=1
@@ -53,7 +54,7 @@ def findmaxormin(array):
         #return None
 
 def subtractOffset(array):
-     datamean = np.mean(array[0:np.where(array[:,0]==0)[0],1])
+     datamean = np.mean(array[0:1000,1])
      array[:,1] = np.subtract(array[:,1], datamean)
      return array
        

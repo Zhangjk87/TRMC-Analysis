@@ -51,7 +51,7 @@ if not os.path.exists(savefolder):
 
 #main program block
 for f in os.listdir("."):
-    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f
+    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f and 'long' not in f
     if filenameconditions:
         baseFileName = savefolder + f[:f.index('_1_p0')]
         
@@ -93,9 +93,9 @@ for f in os.listdir("."):
 
 
         #this part of program does deconvolution
-        deconvolvedData = deconvolve(averagedData, responseTime)
-        
-        deconvolvedDataBinned = binData(deconvolvedData, 10)        
+#        deconvolvedData = deconvolve(averagedData, responseTime)
+#        
+#        deconvolvedDataBinned = binData(deconvolvedData, 10)        
         
         #plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
         #plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
@@ -103,20 +103,20 @@ for f in os.listdir("."):
         #plt.show()
         #plt.close()
         
-        mobilityDeconvIndex = findmaxormin(deconvolvedDataBinned)
-        #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
-        dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
-        print('dPDeconv = '+str(dPDeconv))
-        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
-        mobilitydeconvlist.append(phimudeconv)
+#        mobilityDeconvIndex = findmaxormin(deconvolvedDataBinned)
+#        #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
+#        dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
+#        print('dPDeconv = '+str(dPDeconv))
+#        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
+#        mobilitydeconvlist.append(phimudeconv)
         
         chargelist.append(chargePerQD(I0, Fa, radius, packingFraction, thickness))
         #chargelist.append(0)
         #make plots
         plt.figure(1)
         plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
-        plt.figure(2)
-        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
+#        plt.figure(2)
+#        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         
         plt.figure(3)
         plt.plot(averagedData[:,0]/1e-9, averagedData[:,1])
@@ -128,9 +128,9 @@ for f in os.listdir("."):
         print()
         #write stuff to file
 if singleExponential == True:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+    summary = np.array([pulseenergylist, chargelist, mobilitylist, t1list]).T
 elif singleExponential == False:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+    summary = np.array([pulseenergylist, chargelist, mobilitylist, t1list, t2list, ablist]).T
 
 saveArray(savefolder + 'summary.csv', summary)
 
@@ -145,13 +145,13 @@ plt.legend()
 plt.savefig(savefolder+'decays.png')
 plt.close()
 
-plt.figure(2)
-plt.xlabel('Time (ns)')
-plt.ylabel('$\mathrm{\Delta P/P_0}$')
-plt.xlim(left=0)
-plt.legend()
-plt.savefig(savefolder+'deconvolved_decays.png')
-plt.close()
+#plt.figure(2)
+#plt.xlabel('Time (ns)')
+#plt.ylabel('$\mathrm{\Delta P/P_0}$')
+#plt.xlim(left=0)
+#plt.legend()
+#plt.savefig(savefolder+'deconvolved_decays.png')
+#plt.close()
 
 plt.figure(4)
 plt.plot(pulseenergylistuJ, mobilitylist, 'o')
@@ -160,25 +160,25 @@ plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
 plt.savefig(savefolder+'mobilities.png')
 plt.close()
 
-plt.figure(5)
-plt.plot(pulseenergylistuJ, mobilitydeconvlist, 'o')
-plt.xlabel('Laser intensity ($\mu$J)')
-plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
-plt.savefig(savefolder+'deconvolved_mobilities.png')
-plt.close()
+#plt.figure(5)
+#plt.plot(pulseenergylistuJ, mobilitydeconvlist, 'o')
+#plt.xlabel('Laser intensity ($\mu$J)')
+#plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
+#plt.savefig(savefolder+'deconvolved_mobilities.png')
+#plt.close()
 
     
 if singleExponential == True:
     plt.figure(6)
-    plt.plot(pulseenergylistuJ, t1list, 'o')
+    plt.plot(pulseenergylistuJ, np.array(t1list)/1e-9, 'o')
     plt.xlabel('Laser intensity ($\mu$J)')
     plt.ylabel('Lifetime (ns)')
     plt.savefig(savefolder+'lifetimes.png')
     plt.close()
 elif singleExponential == False:
     plt.figure(6)
-    plt.plot(pulseenergylistuJ, t1list, 'o', label='$\tau_1$')
-    plt.plot(pulseenergylistuJ, t2list, 'o', label='$\tau_2$')
+    plt.plot(pulseenergylistuJ, np.array(t1list)/1e-9, 'o', label=r'$\tau_1$')
+    plt.plot(pulseenergylistuJ, np.array(t2list)/1e-9, 'o', label=r'$\tau_2$')
     plt.xlabel('Laser intensity ($\mu$J)')
     plt.ylabel('Lifetime (ns)')
     plt.legend()
