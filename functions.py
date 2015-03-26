@@ -23,7 +23,7 @@ def doubleExp(x, a, t1, b, t2, offset):
 def readdata(f):
     #print(f)
     print(f[f.index('_')+1:f.index('J')], 'J') #current laser power
-    pulseenergy = float(f[f.index('_')+1:f.index('J')])
+    pulseenergy = float(f[f.index('__')+2:f.index('J')])
     p0=f[f.index('p0_')+3:f.index('V')] #current laser power
     print('P0 = ' + p0 + 'V')
     p0val=float(p0)
@@ -33,7 +33,7 @@ def readdata(f):
     while True:    
         #print(f[:f.index('_1.csv')]+'_' + str(i) +'.csv')
         try: 
-            tempTRMCdata = np.genfromtxt(f[:f.index('_1_p0')]+ '_' + str(i) +'_p0_' + p0 + 'V.csv', delimiter=',', skip_header=4, usecols=(0,2))
+            tempTRMCdata = np.genfromtxt(f[:f.index('_1_p0')]+ '_' + str(i) +'_p0_' + p0 + 'V_long.csv', delimiter=',', skip_header=4, usecols=(0,2))
             TRMCdata[:,1] = np.add(TRMCdata[:,1], tempTRMCdata[:,1])
             i=i+1
             numberofarrays=numberofarrays+1

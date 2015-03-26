@@ -93,34 +93,34 @@ for f in os.listdir("."):
 
 
         #this part of program does deconvolution
-#        deconvolvedData = deconvolve(averagedData, responseTime)
-#        
-#        deconvolvedDataBinned = binData(deconvolvedData, 10)        
+        deconvolvedData = deconvolve(averagedData, responseTime)
         
-        #plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
-        #plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
-        #plt.plot(averagedData[:,0], averagedData[:,1])
-        #plt.show()
-        #plt.close()
+        deconvolvedDataBinned = binData(deconvolvedData, 10)        
         
-#        mobilityDeconvIndex = findmaxormin(deconvolvedDataBinned)
-#        #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
-#        dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
-#        print('dPDeconv = '+str(dPDeconv))
-#        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
-#        mobilitydeconvlist.append(phimudeconv)
+#        plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
+#        plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
+#        plt.plot(averagedData[:,0], averagedData[:,1])
+#        plt.show()
+#        plt.close()
+        
+        mobilityDeconvIndex = findmaxormin(deconvolvedDataBinned[1:])+1
+        print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
+        dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
+        print('dPDeconv = '+str(dPDeconv))
+        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
+        mobilitydeconvlist.append(phimudeconv)
         charge=chargePerQD(I0, Fa, radius, packingFraction, thickness)
         chargelist.append(charge)
         #chargelist.append(0)
         #make plots
         plt.figure(1)
         plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(charge, '.2f')))
-#        plt.figure(2)
-#        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
+        plt.figure(2)
+        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         
         plt.figure(3)
         plt.plot(averagedData[:,0]/1e-9, averagedData[:,1])
-        plt.plot(fitArray[:,0]/1e-9, fitArray[:,1])
+        plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
         plt.xlabel('Time (ns)')
         plt.ylabel('$\mathrm{\Delta}$P (V)')
         plt.savefig(baseFileName+'_fit.png')
@@ -128,9 +128,9 @@ for f in os.listdir("."):
         print()
         #write stuff to file
 if singleExponential == True:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, t1list]).T
+    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
 elif singleExponential == False:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, t1list, t2list, ablist]).T
+    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
 
 saveArray(savefolder + 'summary.csv', summary)
 
@@ -145,13 +145,13 @@ plt.legend()
 plt.savefig(savefolder+'decays.png')
 plt.close()
 
-#plt.figure(2)
-#plt.xlabel('Time (ns)')
-#plt.ylabel('$\mathrm{\Delta P/P_0}$')
-#plt.xlim(left=0)
-#plt.legend()
-#plt.savefig(savefolder+'deconvolved_decays.png')
-#plt.close()
+plt.figure(2)
+plt.xlabel('Time (ns)')
+plt.ylabel('$\mathrm{\Delta P/P_0}$')
+plt.xlim(left=0)
+plt.legend()
+plt.savefig(savefolder+'deconvolved_decays.png')
+plt.close()
 
 plt.figure(4)
 plt.plot(chargelist, mobilitylist, 'o')
@@ -160,12 +160,12 @@ plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
 plt.savefig(savefolder+'mobilities.png')
 plt.close()
 
-#plt.figure(5)
-#plt.plot(pulseenergylistuJ, mobilitydeconvlist, 'o')
-#plt.xlabel('Laser intensity ($\mu$J)')
-#plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
-#plt.savefig(savefolder+'deconvolved_mobilities.png')
-#plt.close()
+plt.figure(5)
+plt.plot(chargelist, mobilitydeconvlist, 'o')
+plt.xlabel('Charge per Quantum Dot')
+plt.ylabel('$\phi \Sigma \mu$ ($\mathrm{cm^2V^{-1}s^{-1}}$)')
+plt.savefig(savefolder+'deconvolved_mobilities.png')
+plt.close()
 
     
 if singleExponential == True:
