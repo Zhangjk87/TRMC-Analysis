@@ -7,7 +7,7 @@ Created on Tue Feb 17 15:38:40 2015
 
 from cavityparams import *
 
-from functions import *
+from functions_short import *
 from mobility import *
 from scipy.constants import *
 import os
@@ -50,6 +50,7 @@ sys.path.insert(0, folder)
 from sampleparams import *
 from resonanceparams import *
 
+exponential=1
 
 #create lists that are needed to store results
 t1list = []
@@ -63,14 +64,14 @@ chargelist = []
 
 os.chdir(folder)
 
-savefolder=os.path.join('./analysisresultslongtriple/')
+savefolder=os.path.join('./analysisresults/')
 
 if not os.path.exists(savefolder):
     os.makedirs(savefolder)
 
 #main program block
 for f in os.listdir("."):
-    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f and 'long' in f
+    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f and 'long' not in f
     if filenameconditions:
         baseFileName = savefolder + f[:f.index('_1_p0')]
         

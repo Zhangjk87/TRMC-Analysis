@@ -24,7 +24,11 @@ def mobility(dP, laserPower, folder, P0):
     import sampleparams
     import resonanceparams
     #define absolute constants that won't change between data sets
-
+    
+    #correction for dP/P=ndV/V    
+    dPCorrection = 1.42
+    dP=dPCorrection*dP    
+    
     pi=math.pi
     e0=epsilon_0#farads/meter
     q=e
