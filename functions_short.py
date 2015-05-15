@@ -14,6 +14,17 @@ import matplotlib.pyplot as plt
 import math
 from scipy import signal
 
+def trim(mydata, minwavenumber, maxwavenumber):
+    for counter, row in enumerate(mydata):
+            if row[0] > minwavenumber:
+                mydata = np.delete(mydata, np.s_[:counter], axis=0)
+                break
+    for counter, row in enumerate(mydata):
+            if row[0] > maxwavenumber:
+                mydata = np.delete(mydata, np.s_[counter:], axis=0)
+                break
+    return mydata
+
 def singleExp(x, a, tau, offset):
     return a*np.exp(-(x)/tau) + offset
     
@@ -24,26 +35,17 @@ def tripleExp(x, a, t1, b, t2, c, t3, offset):
     return a*np.exp(-(x)/t1) + b*np.exp(-(x)/t2) + c*np.exp(-(x)/t3) + offset 
 
 def readdata(f):
-    #print(f)
+    print(f)
     print(f[f.index('_')+1:f.index('J')], 'J') #current laser power
-    pulseenergy = float(f[f.index('__')+2:f.index('J')])
+    pulseenergy = float(f[f.index('_')+1:f.index('J')])
     p0=f[f.index('p0_')+3:f.index('V')] #current laser power
     print('P0 = ' + p0 + 'V')
     p0val=float(p0)
-    TRMCdata = np.genfromtxt(f, delimiter=',', skip_header=4, usecols=(0,2))
-    numberofarrays=1
-    i=2
-    while True:    
-        #print(f[:f.index('_1.csv')]+'_' + str(i) +'.csv')
-        try: 
-            tempTRMCdata = np.genfromtxt(f[:f.index('_1_p0')]+ '_' + str(i) +'_p0_' + p0 + 'V.csv', delimiter=',', skip_header=4, usecols=(0,2))
-            TRMCdata[:,1] = np.add(TRMCdata[:,1], tempTRMCdata[:,1])
-            i=i+1
-            numberofarrays=numberofarrays+1
-        except IOError:
-            break
-    TRMCdata[:,1] = np.divide(TRMCdata[:,1], numberofarrays)
-    print('numberofarrays='+str(numberofarrays))
+    TRMCdata = np.genfromtxt(f, delimiter=',', skip_header=4, usecols=(0,1))
+    #tempTRMCdata = np.genfromtxt(f[:f.index('_p0')]+ '_' ++'_p0_' + p0 + 'V.csv', delimiter=',', skip_header=4, usecols=(0,2))
+    #TRMCdata[:,1] = np.add(TRMCdata[:,1], tempTRMCdata[:,1])
+    #TRMCdata[:,1] = np.divide(TRMCdata[:,1], numberofarrays)
+    #print('numberofarrays='+str(numberofarrays))
     return(TRMCdata, pulseenergy, p0val)
     
 def findmaxormin(array):

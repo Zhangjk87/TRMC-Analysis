@@ -31,7 +31,7 @@ respeak[:,1] = np.divide(respeak[:,1], np.amax(respeak[:,1])) #normalize resonan
 xdata = respeak[:,0]
 ydata = respeak[:,1]
 
-guess = [.1, 8.92e9, 1e7, 1e-8, 0]
+guess = [.1, 8.95e9, 1e7, 1e-8, 0]
 plt.plot(xdata, ydata)
 
 #plt.show()

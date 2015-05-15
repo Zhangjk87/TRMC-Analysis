@@ -71,11 +71,13 @@ if not os.path.exists(savefolder):
 
 #main program block
 for f in os.listdir("."):
-    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f and 'long' not in f
+    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_p0' in f
     if filenameconditions:
-        baseFileName = savefolder + f[:f.index('_1_p0')]
-        
+        baseFileName = savefolder + f[:f.index('_p0')]
+        print(f)
         averagedData, pulseEnergy, P0 = readdata(f)
+
+        averagedData = trim(averagedData, -1e10, 1e-6)
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
         pulseenergylist.append(pulseEnergy)
@@ -91,31 +93,7 @@ for f in os.listdir("."):
         dP = averagedData[mobilityIndex, 1]
         print(mobilityIndex)        
         
-                #to do: fit lifetime here
-        if exponential == 1:
-            guess = [a, t1, offset]
-            popt, pcov, params = fitSingle(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)      
-        elif exponential == 2:
-            guess = [a, t1, b, t2, offset]
-            popt, pcov, params = fitDouble(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)  
-            t2list.append(popt[3])
-            ablist.append(popt[0]/popt[2])
-        elif exponential == 3:
-            guess = [a, t1, b, t2, c, t3, offset]
-            popt, pcov, params = fitTriple(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)  
-            
-            if popt[3]>popt[5]:
-                t3list.append(popt[3])
-                t2list.append(popt[5])
-            else:
-                t2list.append(popt[3])
-                t3list.append(popt[5])
-            ablist.append(popt[0]/popt[2])
-        t1list.append(popt[1])
-        #save fit data and fit params 
-        fitArray = generateFitData(exponential, averagedData[mobilityIndex:,0], *popt)
-        saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
-        saveFitParams(baseFileName+'_fitParams.txt', params)
+
         
         #mobility
         correctedP0=P0-P0offset
@@ -129,6 +107,7 @@ for f in os.listdir("."):
         deconvolvedDataBinned = binData(deconvolvedData, 50)  
         saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinned)
         
+    
 #        plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
 #        plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
 #        plt.plot(averagedData[:,0], averagedData[:,1])
@@ -144,7 +123,37 @@ for f in os.listdir("."):
         charge=chargePerQD(I0, Fa, radius, packingFraction, thickness)
         chargelist.append(charge)
         #chargelist.append(0)
-        #make plots
+       
+       
+                    #to do: fit lifetime here
+
+        if exponential == 1:
+            guess = [a, t1, offset]
+            popt, pcov, params = fitSingle(deconvolvedDataBinned[mobilityDeconvIndex:,0],deconvolvedDataBinned[mobilityDeconvIndex:,1], guess)      
+        elif exponential == 2:
+            guess = [a, t1, b, t2, offset]
+            popt, pcov, params = fitDouble(deconvolvedDataBinned[mobilityDeconvIndex:,0],deconvolvedDataBinned[mobilityDeconvIndex:,1], guess)  
+            t2list.append(popt[3])
+            ablist.append(popt[0]/popt[2])
+        elif exponential == 3:
+            guess = [a, t1, b, t2, c, t3, offset]
+            popt, pcov, params = fitTriple(deconvolvedDataBinned[mobilityDeconvIndex:,0],deconvolvedDataBinned[mobilityDeconvIndex:,1], guess)  
+            
+            if popt[3]>popt[5]:
+                t3list.append(popt[3])
+                t2list.append(popt[5])
+            else:
+                t2list.append(popt[3])
+                t3list.append(popt[5])
+            ablist.append(popt[0]/popt[2])
+        t1list.append(popt[1])        
+                #save fit data and fit params 
+        fitArray = generateFitData(exponential, deconvolvedDataBinned[mobilityDeconvIndex:,0], *popt)
+        saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
+        saveFitParams(baseFileName+'_fitParams.txt', params)       
+       
+       
+       #make plots
         plt.figure(1)
         plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(charge, '.2f')))
         plt.figure(2)
