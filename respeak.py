@@ -19,11 +19,8 @@ def func(f, R0, f0, dW, m, b):
 #res_peak_folder = 'tempdata'
 res_peak_folder = input('path containing res peak data: ')
 
-<<<<<<< HEAD
 os.chdir(res_peak_folder)
-=======
-os.chdir(os.path.join('./tempdata'))
->>>>>>> origin/master
+
 f='res peak.txt'
 
 respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
@@ -33,12 +30,9 @@ respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
 respeak[:,1] = np.divide(respeak[:,1], np.amax(respeak[:,1])) #normalize resonance peak so maximum at 1
 xdata = respeak[:,0]
 ydata = respeak[:,1]
-<<<<<<< HEAD
+
 guess = [.1, 8.87e9, 1.5e7, 1e-8, 0]
-=======
-guess = [.1, 8.95e9, 1e7, 1e-8, 0]
 plt.plot(respeak[:,0], respeak[:,1])
->>>>>>> origin/master
 
 #plt.show()
 try:
