@@ -25,11 +25,6 @@ matplotlib.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
 matplotlib.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
 matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
 
-#important parameters for the program
-#numberoffiles = 2
-numberoffiles = int(input('number of files = '))
-
-#folder = 'tempdata'
 folder = input('path containing TRMC data: ')
 
 import sys
@@ -56,15 +51,14 @@ if not os.path.exists(savefolder):
 
 #main program block
 for f in os.listdir("."):
-    filenameconditions = 'AVG' not in f and 'decay' not in f and 'p0' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1.csv' in f
+    filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_1_p0' in f
     if filenameconditions:
-        baseFileName = savefolder + f[:f.index('_1.csv')]
+        baseFileName = savefolder + f[:f.index('_1_p0')]
         
-        averagedData, pulseEnergy = readdata(f, numberoffiles)
+        averagedData, pulseEnergy, P0 = readdata(f)
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
         pulseenergylist.append(pulseEnergy)
-        chargelist.append(0)
         #also must output charge/QD, if necessary        
         
         averagedData = subtractOffset(averagedData)
@@ -91,8 +85,11 @@ for f in os.listdir("."):
         fitArray = generateFitData(singleExponential, averagedData[mobilityIndex:,0], *popt)
         saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
         saveFitParams(baseFileName+'_fitParams.txt', params)
-
-        mobilitylist.append(mobility(dP, pulseEnergy,folder))       
+        
+        #mobility
+        correctedP0=P0-P0offset
+        phimu, I0 = mobility(dP, pulseEnergy,folder,correctedP0)
+        mobilitylist.append(phimu)       
 
 
         #this part of program does deconvolution
@@ -110,8 +107,11 @@ for f in os.listdir("."):
         #print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
         dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
         print('dPDeconv = '+str(dPDeconv))
-        mobilitydeconvlist.append(mobility(dPDeconv, pulseEnergy,folder))
+        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
+        mobilitydeconvlist.append(phimudeconv)
         
+        chargelist.append(chargePerQD(I0, Fa, radius, packingFraction, thickness))
+        #chargelist.append(0)
         #make plots
         plt.figure(1)
         plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
