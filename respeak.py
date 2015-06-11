@@ -49,9 +49,11 @@ try:
     #print('Q = ' + str(Q))
     responseTime=(Q/math.pi / popt[1])
     print('response time =' + str(responseTime))
-    
-    with open('resonanceparams.py', 'w') as newfile:
-        newfile.write('Q='+str(Q)+'\nR0='+str(R0)+'\nresponseTime='+str(responseTime)+'\nf0='+str(popt[1]))
+    if Q<0:
+        print('\n\nWARNING: Q<0. DO NOT USE THESE PARAMETERS FOR FITTING. TRY AGAIN. resonanceparams.py not written.\n\n')
+    else:
+        with open('resonanceparams.py', 'w') as newfile:
+            newfile.write('Q='+str(Q)+'\nR0='+str(R0)+'\nresponseTime='+str(responseTime)+'\nf0='+str(popt[1]))
     print('Q='+str(Q)+'\nR0='+str(R0)+'\nresponseTime='+str(responseTime)+'\nf0='+str(popt[1]))
     #np.savetxt(res_peak_folder + '\\respeakfit.txt',fit, delimiter=',')
     #np.savetxt(res_peak_folder + '\\ydata.txt',ydata, delimiter=',')

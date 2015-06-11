@@ -104,7 +104,7 @@ for f in os.listdir("."):
         #this part of program does deconvolution
         deconvolvedData = deconvolve(averagedData, responseTime)
         
-        deconvolvedDataBinned = binData(deconvolvedData, 50)  
+        deconvolvedDataBinned = binData(deconvolvedData, 200)  
         saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinned)
         
     
