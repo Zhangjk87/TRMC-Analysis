@@ -12,7 +12,8 @@ from scipy.optimize import curve_fit
 from scipy.stats.distributions import  t
 import matplotlib.pyplot as plt
 import math
-from scipy import signal
+#from scipy import signal
+import scipy.signal
 
 def trim(mydata, minwavenumber, maxwavenumber):
     for counter, row in enumerate(mydata):
@@ -59,7 +60,8 @@ def findmaxormin(array):
         #return None
 
 def subtractOffset(array):
-     datamean = np.mean(array[0:1000,1])
+     zerotime=np.argwhere(abs(array[:,0])<1e-18)
+     datamean = np.mean(array[0:zerotime,1])
      array[:,1] = np.subtract(array[:,1], datamean)
      return array
        
@@ -208,3 +210,15 @@ def chargePerQD(I0, Fa, radius, packingFraction, thickness):
     charge = (I0*Fa*(4/3*math.pi*radius**3)/(packingFraction*thickness))
     print('chargePerQD='+str(charge))
     return(charge)
+
+#see http://stackoverflow.com/questions/25191620/creating-lowpass-filter-in-scipy-understanding-methods-and-units
+def butter_lowpass(cutoff, fs, order):
+    nyq = 0.5 * fs
+    normal_cutoff = cutoff / nyq
+    b, a = scipy.signal.butter(order, normal_cutoff, btype='low', analog=False)
+    return b, a
+
+def butter_lowpass_filter(data, cutoff, fs, order):
+    b, a = butter_lowpass(cutoff, fs, order=order)
+    y = scipy.signal.lfilter(b, a, data)
+    return y

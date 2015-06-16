@@ -7,7 +7,7 @@ Created on Tue Feb 17 15:38:40 2015
 
 from cavityparams import *
 
-from functions_short import *
+from functions import *
 from mobility import *
 from scipy.constants import *
 import os
@@ -84,13 +84,22 @@ for f in os.listdir("."):
         #also must output charge/QD, if necessary        
         
         averagedData = subtractOffset(averagedData)
-        
+
         #save averaged data that has had its offset fixed
-        saveArray(baseFileName+'_combined.csv', averagedData)        
+        #saveArray(baseFileName+'_combined.csv', averagedData)        
+        
+        #filter data                
+        cutoff=50e6
+        fs=20e9
+        order=5
+        
+        filteredData=np.zeros(np.shape(averagedData))
+        filteredData[:,0] = np.copy(averagedData[:,0])
+        filteredData[:,1] =butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
-        mobilityIndex = findmaxormin(averagedData)
-        dP = averagedData[mobilityIndex, 1]
+        mobilityIndex = findmaxormin(filteredData)
+        dP = filteredData[mobilityIndex, 1]
         print(mobilityIndex)        
         
 
@@ -102,9 +111,9 @@ for f in os.listdir("."):
 
 
         #this part of program does deconvolution
-        deconvolvedData = deconvolve(averagedData, responseTime)
+        deconvolvedData = deconvolve(filteredData, responseTime)
         
-        deconvolvedDataBinned = binData(deconvolvedData, 200)  
+        deconvolvedDataBinned = binData(deconvolvedData, 1)  
         saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinned)
         
     
@@ -126,7 +135,7 @@ for f in os.listdir("."):
        
        
                     #to do: fit lifetime here
-        fitdeconv=False
+        fitdeconv=True
         if fitdeconv is True:
             if exponential == 1:
                 guess = [a, t1, offset]
@@ -187,17 +196,19 @@ for f in os.listdir("."):
        
        #make plots
         plt.figure(1)
-        plt.plot(averagedData[:,0]/1e-9, -averagedData[:,1]/P0, label=str(format(charge, '.2f')))
+        plt.plot(filteredData[:,0]/1e-9, -filteredData[:,1]/P0, label=str(format(charge, '.2f')))
         plt.figure(2)
-        plt.plot(deconvolvedDataBinned[:,0]/1e-9, -deconvolvedDataBinned[:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
+        plt.plot(deconvolvedDataBinned[1:,0]/1e-9, -deconvolvedDataBinned[1:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         
         plt.figure(3)
         plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1], 'g-')
         plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], '-b')
+        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1], '-y')
         if popt is not 0:
             plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
         plt.xlabel('Time (ns)')
         plt.ylabel('$\mathrm{\Delta}$P (V)')
+        plt.xlim(0, filteredData[-1,0]/1e-9)
         plt.savefig(baseFileName+'_fit.png')
         plt.close()
         print()
