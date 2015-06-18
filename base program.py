@@ -95,7 +95,7 @@ for f in os.listdir("."):
         
         filteredData=np.zeros(np.shape(averagedData))
         filteredData[:,0] = np.copy(averagedData[:,0])
-        filteredData[:,1] =butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
+        filteredData[:,1] = butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
         mobilityIndex = findmaxormin(filteredData)
