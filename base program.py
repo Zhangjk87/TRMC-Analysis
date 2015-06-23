@@ -77,7 +77,7 @@ for f in os.listdir("."):
         print(f)
         averagedData, pulseEnergy, P0 = readdata(f)
 
-        averagedData = trim(averagedData, -1e10, 1e-6)
+        averagedData = trim(averagedData, -1e10,1e-6)
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
         pulseenergylist.append(pulseEnergy)

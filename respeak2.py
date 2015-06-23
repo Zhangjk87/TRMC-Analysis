@@ -52,11 +52,15 @@ respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
 #    backgroundy.append(respeak[j,1])
 #    
 
+#now finds min frequency automatically
+guess = [.1, 0, 1e7, 1e-8, 0]
 
 respeak[:,1] = np.power(respeak[:,1], 2)/50
 respeak[:,1] = np.divide(respeak[:,1], np.amax(respeak[:,1])) #normalize resonance peak so maximum at 1
 xdata = respeak[:,0]
 ydata = respeak[:,1]
+
+guess[1] = xdata[np.argmin(ydata)]
 
 backgroundx = np.array(respeak[0:50,0])# + respeak[-1:-9, 0]])
 backgroundy = np.array(respeak[0:50,1])# + respeak[-1:-9, 1]])
@@ -93,7 +97,7 @@ try:
 except RuntimeError:
     print("Error - curve_fit failed")
 
-guess = [.1, 9.015e9, 1e7, 1e-8, 0]
+
 plt.plot(xdata, ydata)
 
 #plt.show()
@@ -106,7 +110,9 @@ try:
     plt.plot(xdata, fit)
     
     print(linearfit[np.argmin(respeak[:,1])])
+    print('uncorrected R0 = ' + str(np.amin(respeak[:,1])))
     R0=np.amin(respeak[:,1])/linearfit[np.argmin(respeak[:,1])]
+    #R0=np.amin(respeak[:,1])
     Q=popt[1]/popt[2]
     #print('Q = ' + str(Q))
     responseTime=(Q/math.pi / popt[1])
@@ -116,7 +122,7 @@ try:
     else:
         with open('resonanceparams.py', 'w') as newfile:
             newfile.write('Q = '+str(Q)+'\nR0 = '+str(R0)+'\nR0 = '+str(R0)+'\nresponseTime = '+str(responseTime)+'\nf0 = '+str(popt[1]))
-    print('Q = '+str(Q)+'\nR0 = '+str(R0)+'\nR0 = '+str(R0)+'\nresponseTime = '+str(responseTime)+'\nf0 = '+str(popt[1]))
+    print('Q = '+str(Q)+'\nR0 = '+str(R0) + '\nresponseTime = '+str(responseTime)+'\nf0 = '+str(popt[1]))
     #np.savetxt(res_peak_folder + '\\respeakfit.txt',fit, delimiter=',')
     #np.savetxt(res_peak_folder + '\\ydata.txt',ydata, delimiter=',')
 
