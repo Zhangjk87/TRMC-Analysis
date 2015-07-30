@@ -77,7 +77,7 @@ for f in os.listdir("."):
         print(f)
         averagedData, pulseEnergy, P0 = readdata(f)
 
-        averagedData = trim(averagedData, -1e10,10e-6)
+        averagedData = trim(averagedData, -1e10,6e-6)
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
         pulseenergylist.append(pulseEnergy)
@@ -89,7 +89,7 @@ for f in os.listdir("."):
         #saveArray(baseFileName+'_combined.csv', averagedData)        
         
         #filter data                
-        cutoff=50e6
+        cutoff=30e6
         fs=20e9
         order=5
         
@@ -203,7 +203,7 @@ for f in os.listdir("."):
         plt.figure(3)
         plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1], 'g-')
         plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], '-b')
-        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1], '-y')
+        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1], '-k')
         if popt is not 0:
             plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
         plt.xlabel('Time (ns)')
