@@ -38,7 +38,7 @@ def tripleExp(x, a, t1, b, t2, c, t3, offset):
 def readdata(f):
     print(f)
     print(f[f.index('_')+1:f.index('J')], 'J') #current laser power
-    pulseenergy = float(f[f.index('OD4_')+4:f.index('J')])
+    pulseenergy = float(f[f.index('OD5.9_')+6:f.index('J')])
     p0=f[f.index('p0_')+3:f.index('V')] #current laser power
     print('P0 = ' + p0 + 'V')
     p0val=float(p0)

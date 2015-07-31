@@ -106,9 +106,15 @@ for f in os.listdir("."):
         
         #mobility
         correctedP0=P0-P0offset
-        phimu, I0 = mobility(dP, pulseEnergy,folder,correctedP0)
+        phimu, I0, dGNormalization = mobility(dP, pulseEnergy,folder,correctedP0)
         mobilitylist.append(phimu)       
-
+        
+        saveNormalizeddG=True
+        normalizeddGArray=np.zeros(np.shape(averagedData))
+        normalizeddGArray[:,0]=averagedData[:,0]
+        normalizeddGArray[:,1]=averagedData[:,1]*dGNormalization
+        if saveNormalizeddG:
+            saveArray(baseFileName+'dG_Normalized.csv', normalizeddGArray)
 
         #this part of program does deconvolution
         deconvolvedData = deconvolve(filteredData, responseTime)
@@ -127,7 +133,7 @@ for f in os.listdir("."):
         print('mobilityDeconvIndex='+str(mobilityDeconvIndex))
         dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex,1]
         print('dPDeconv = '+str(dPDeconv))
-        phimudeconv, ignore = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
+        phimudeconv, ignore, ignore2 = mobility(dPDeconv, pulseEnergy,folder,correctedP0)
         mobilitydeconvlist.append(phimudeconv)
         charge=chargePerQD(I0, Fa, radius, packingFraction, thickness)
         chargelist.append(charge)
