@@ -54,7 +54,7 @@ def mobility(dP, laserPower, folder, P0):
     #print(format(I0, "e"))
     #careful with signs
     print('dP = ' + str(dP))
-    K=resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a negative dP corresponds to an absorption with HP 462A amplifier
+    K=sign*resonanceparams.Q*(1+sign*1/np.sqrt(resonanceparams.R0))/(beta*e0*sampleparams.er*resonanceparams.f0*pi*L)#see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a negative dP corresponds to an absorption with HP 462A amplifier
     print('K = ' + str(K))
     dG=sampleparams.illuminationFactor*dP/P0/K
     #print(dG)
