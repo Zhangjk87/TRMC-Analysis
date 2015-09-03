@@ -61,4 +61,4 @@ def mobility(dP, laserPower, folder, P0):
     
     phimu=dG/beta/I0/sampleparams.Fa/q/1e-4
     print('mu = ' + str(phimu))
-    return(phimu,I0, dPCorrection*sampleparams.illuminationFactor/P0/K/I0/sampleparams.Fa)        
+    return(phimu,I0, dPCorrection*sampleparams.illuminationFactor/P0/K/I0/sampleparams.Fa/q/beta/1e-4)        

@@ -58,6 +58,7 @@ t2list = []
 t3list = []
 ablist = []
 pulseenergylist = []
+photondensitylist = []
 mobilitylist = []
 mobilitydeconvlist = []
 chargelist = []
@@ -65,6 +66,8 @@ chargelist = []
 os.chdir(folder)
 
 savefolder=os.path.join('./analysisresults/')
+
+saveArrays = True
 
 if not os.path.exists(savefolder):
     os.makedirs(savefolder)
@@ -76,26 +79,33 @@ for f in os.listdir("."):
         baseFileName = savefolder + f[:f.index('_p0')]
         print(f)
         averagedData, pulseEnergy, P0 = readdata(f)
+        
 
-        averagedData = trim(averagedData, -1e10,6e-6)
+        averagedData = trim(averagedData, -9e9,9e9)
+
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
         pulseenergylist.append(pulseEnergy)
+        freq = c/(wavelength) #Hz
+        photonenergy = h*freq
+        spotarea=pi*(spotdiameter/2)**2#m^2
+        photonDensity=pulseEnergy/photonenergy/spotarea*Fa/100**2 #photons/cm^2
         #also must output charge/QD, if necessary        
-        
+        photondensitylist.append(photonDensity)
         averagedData = subtractOffset(averagedData)
 
         #save averaged data that has had its offset fixed
         #saveArray(baseFileName+'_combined.csv', averagedData)        
         
         #filter data                
-        cutoff=30e6
+        cutoff=25e6
         fs=20e9
         order=5
         
         filteredData=np.zeros(np.shape(averagedData))
         filteredData[:,0] = np.copy(averagedData[:,0])
         filteredData[:,1] = butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
+        mobilityDeconvData = trim(filteredData, -1e-6,2e-6)
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
         mobilityIndex = findmaxormin(filteredData)
@@ -106,21 +116,21 @@ for f in os.listdir("."):
         
         #mobility
         correctedP0=P0-P0offset
-        phimu, I0, dGNormalization = mobility(dP, pulseEnergy,folder,correctedP0)
+        phimu, I0, PhiMuNormalization = mobility(dP, pulseEnergy,folder,correctedP0)
         mobilitylist.append(phimu)       
         
-        saveNormalizeddG=True
-        normalizeddGArray=np.zeros(np.shape(averagedData))
-        normalizeddGArray[:,0]=averagedData[:,0]
-        normalizeddGArray[:,1]=averagedData[:,1]*dGNormalization
-        if saveNormalizeddG:
-            saveArray(baseFileName+'dG_Normalized.csv', normalizeddGArray)
-
+        normalizedPhiMuArray=np.zeros(np.shape(filteredData))
+        normalizedPhiMuArray[:,0]=filteredData[:,0]
+        normalizedPhiMuArray[:,1]=filteredData[:,1]*PhiMuNormalization
+        if saveArrays:
+            saveArray(baseFileName+'PhiMu_Normalized.csv', normalizedPhiMuArray)
         #this part of program does deconvolution
-        deconvolvedData = deconvolve(filteredData, responseTime)
-        
-        deconvolvedDataBinned = binData(deconvolvedData, 1)  
-        saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinned)
+        deconvolvedData = deconvolve(mobilityDeconvData, responseTime)
+        print(deconvolvedData)
+        #print(np.shape(deconvolvedData))
+        deconvolvedDataBinned = deconvolvedData#binData(deconvolvedData, 1)  
+        if saveArrays:
+            saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinned)
         
     
 #        plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
@@ -141,7 +151,7 @@ for f in os.listdir("."):
        
        
                     #to do: fit lifetime here
-        fitdeconv=True
+        fitdeconv=False
         if fitdeconv is True:
             if exponential == 1:
                 guess = [a, t1, offset]
@@ -165,7 +175,8 @@ for f in os.listdir("."):
             if popt is not 0:
                 t1list.append(popt[1])
                 fitArray = generateFitData(exponential, deconvolvedDataBinned[mobilityDeconvIndex:,0], *popt)
-                saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
+                if saveArrays:
+                    saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
                 saveFitParams(baseFileName+'_fitParams.txt', params)   
             else:
                 t1list.append(0)
@@ -174,15 +185,15 @@ for f in os.listdir("."):
         if fitdeconv is False:
             if exponential == 1:
                 guess = [a, t1, offset]
-                popt, pcov, params = fitSingle(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)      
+                popt, pcov, params = fitSingle(filteredData[mobilityIndex:,0],filteredData[mobilityIndex:,1], guess)      
             elif exponential == 2:
                 guess = [a, t1, b, t2, offset]
-                popt, pcov, params = fitDouble(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)
+                popt, pcov, params = fitDouble(filteredData[mobilityIndex:,0],filteredData[mobilityIndex:,1], guess)
                 t2list.append(popt[3])
                 ablist.append(popt[0]/popt[2])
             elif exponential == 3:
                 guess = [a, t1, b, t2, c, t3, offset]
-                popt, pcov, params = fitTriple(averagedData[mobilityIndex:,0],averagedData[mobilityIndex:,1], guess)
+                popt, pcov, params = fitTriple(averagedData[filteredData:,0],filteredData[mobilityIndex:,1], guess)
                 
                 if popt[3]>popt[5]:
                     t3list.append(popt[3])
@@ -193,8 +204,9 @@ for f in os.listdir("."):
                 ablist.append(popt[0]/popt[2])
             if popt is not 0:
                 t1list.append(popt[1])
-                fitArray = generateFitData(exponential, deconvolvedDataBinned[mobilityDeconvIndex:,0], *popt)
-                saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
+                fitArray = generateFitData(exponential, filteredData[mobilityIndex:,0], *popt)
+                if saveArrays:
+                    saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
                 saveFitParams(baseFileName+'_fitParams.txt', params)   
             else:
                 t1list.append(0)
@@ -214,17 +226,30 @@ for f in os.listdir("."):
             plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
         plt.xlabel('Time (ns)')
         plt.ylabel('$\mathrm{\Delta}$P (V)')
-        plt.xlim(0, filteredData[-1,0]/1e-9)
+        plt.xlim(1, filteredData[-1,0]/1e-9)
+        plt.xscale('log')
         plt.savefig(baseFileName+'_fit.png')
+        plt.close()
+    
+        plt.figure(99)
+        plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1], 'g-')
+        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], '-b')
+        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1], '-k')
+        if popt is not 0:
+            plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
+        plt.xlabel('Time (ns)')
+        plt.ylabel('$\mathrm{\Delta}$P (V)')
+        plt.xlim(deconvolvedDataBinned[0,0]/1e-9, deconvolvedDataBinned[-1,0]/1e-9)
+        plt.savefig(baseFileName+'_fit_deconvolved.png')
         plt.close()
         print()
         #write stuff to file
 if exponential == 1:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+    summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
 elif exponential == 2:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+    summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
 elif exponential == 3:
-    summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
+    summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
 
 saveArray(savefolder + 'summary.csv', summary)
 
