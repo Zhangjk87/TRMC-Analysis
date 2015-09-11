@@ -121,7 +121,7 @@ try:
         print('\n\nWARNING: Q<0. DO NOT USE THESE PARAMETERS FOR FITTING. TRY AGAIN. resonanceparams.py not written.\n\n')
     else:
         with open('resonanceparams.py', 'w') as newfile:
-            newfile.write('Q = '+str(Q)+str(R0)+'\nresponseTime = '+str(responseTime)+'\nf0 = '+str(popt[1]))
+            newfile.write('Q = '+str(Q)+ '\nR0 = ' +str(R0)+'\nresponseTime = '+str(responseTime)+'\nf0 = '+str(popt[1]))
     print('Q = '+str(Q)+'\nR0 = '+str(R0) + '\nresponseTime = '+str(responseTime)+'\nf0 = '+str(popt[1]))
     #np.savetxt(res_peak_folder + '\\respeakfit.txt',fit, delimiter=',')
     #np.savetxt(res_peak_folder + '\\ydata.txt',ydata, delimiter=',')

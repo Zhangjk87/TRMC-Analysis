@@ -111,6 +111,7 @@ for f in os.listdir("."):
         mobilityIndex = findmaxormin(filteredData)
         dP = filteredData[mobilityIndex, 1]
         print(mobilityIndex)        
+        print('dp=', dP)
         
 
         
@@ -221,9 +222,9 @@ for f in os.listdir("."):
         plt.plot(deconvolvedDataBinned[1:,0]/1e-9, -deconvolvedDataBinned[1:,1]/P0,label=str(format(pulseEnergy/1e-6, '.0f') + ' $\mathrm{\mu J}$'))
         
         plt.figure(3)
-        plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1], 'g-')
-        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], '-b')
-        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1], '-k')
+        plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1]*PhiMuNormalization, 'g-')
+        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1]*PhiMuNormalization, '-b')
+        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1]*PhiMuNormalization, '-k')
         if popt is not 0:
             plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
         plt.xlabel('Time (ns)')
@@ -234,9 +235,9 @@ for f in os.listdir("."):
         plt.close()
     
         plt.figure(99)
-        plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1], 'g-')
-        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1], '-b')
-        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1], '-k')
+        plt.plot(deconvolvedDataBinned[1:,0]/1e-9, deconvolvedDataBinned[1:,1]*PhiMuNormalization, 'g-')
+        plt.plot(averagedData[:,0]/1e-9, averagedData[:,1]*PhiMuNormalization, '-b')
+        plt.plot(filteredData[:,0]/1e-9, filteredData[:,1]*PhiMuNormalization, '-k')
         if popt is not 0:
             plt.plot(fitArray[:,0]/1e-9, fitArray[:,1],'r-')
         plt.xlabel('Time (ns)')
@@ -246,12 +247,21 @@ for f in os.listdir("."):
         plt.close()
         print()
         #write stuff to file
-if exponential == 1:
-    summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
-elif exponential == 2:
-    summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
-elif exponential == 3:
-    summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
+olddata=True        
+if olddata:
+    if exponential == 1:
+        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+    elif exponential == 2:
+        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+    elif exponential == 3:
+        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
+else:
+    if exponential == 1:
+        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+    elif exponential == 2:
+        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+    elif exponential == 3:
+        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
 
 saveArray(savefolder + 'summary.csv', summary)
 
