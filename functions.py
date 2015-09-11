@@ -60,8 +60,9 @@ def findmaxormin(array):
         #return None
 
 def subtractOffset(array):
-     zerotime=np.argwhere(abs(array[:,0])<1e-17)
-     datamean = np.mean(array[0:zerotime,1])
+     zerotime=np.argwhere(abs(array[:,0])-2.5e-11<1e-17)#1e-16)
+     print(zerotime)
+     datamean = np.mean(array[0:zerotime[0],1])
      array[:,1] = np.subtract(array[:,1], datamean)
      return array
        

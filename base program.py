@@ -81,7 +81,7 @@ for f in os.listdir("."):
         averagedData, pulseEnergy, P0 = readdata(f)
         
 
-        averagedData = trim(averagedData, -9e9,9e9)
+        averagedData = trim(averagedData, -2e-7,1e-6)
 
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
@@ -98,7 +98,7 @@ for f in os.listdir("."):
         #saveArray(baseFileName+'_combined.csv', averagedData)        
         
         #filter data                
-        cutoff=25e6
+        cutoff=40e6
         fs=20e9
         order=5
         
@@ -128,9 +128,11 @@ for f in os.listdir("."):
         deconvolvedData = deconvolve(mobilityDeconvData, responseTime)
         print(deconvolvedData)
         #print(np.shape(deconvolvedData))
-        deconvolvedDataBinned = deconvolvedData#binData(deconvolvedData, 1)  
+        deconvolvedDataBinned = deconvolvedData#binData(deconvolvedData, 1)
+        deconvolvedDataBinnedNormalized = np.copy(deconvolvedDataBinned)
+        deconvolvedDataBinnedNormalized[:,1] = deconvolvedDataBinnedNormalized[:,1] * PhiMuNormalization
         if saveArrays:
-            saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinned)
+            saveArray(baseFileName+'_combined_deconvolved.csv', deconvolvedDataBinnedNormalized)
         
     
 #        plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
@@ -151,19 +153,19 @@ for f in os.listdir("."):
        
        
                     #to do: fit lifetime here
-        fitdeconv=False
+        fitdeconv=True
         if fitdeconv is True:
             if exponential == 1:
                 guess = [a, t1, offset]
-                popt, pcov, params = fitSingle(deconvolvedDataBinned[mobilityDeconvIndex:,0],deconvolvedDataBinned[mobilityDeconvIndex:,1], guess)      
+                popt, pcov, params = fitSingle(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)      
             elif exponential == 2:
                 guess = [a, t1, b, t2, offset]
-                popt, pcov, params = fitDouble(deconvolvedDataBinned[mobilityDeconvIndex:,0],deconvolvedDataBinned[mobilityDeconvIndex:,1], guess)  
+                popt, pcov, params = fitDouble(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)  
                 t2list.append(popt[3])
                 ablist.append(popt[0]/popt[2])
             elif exponential == 3:
                 guess = [a, t1, b, t2, c, t3, offset]
-                popt, pcov, params = fitTriple(deconvolvedDataBinned[mobilityDeconvIndex:,0],deconvolvedDataBinned[mobilityDeconvIndex:,1], guess)  
+                popt, pcov, params = fitTriple(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)  
                 
                 if popt[3]>popt[5]:
                     t3list.append(popt[3])
@@ -174,7 +176,7 @@ for f in os.listdir("."):
                 ablist.append(popt[0]/popt[2])
             if popt is not 0:
                 t1list.append(popt[1])
-                fitArray = generateFitData(exponential, deconvolvedDataBinned[mobilityDeconvIndex:,0], *popt)
+                fitArray = generateFitData(exponential, deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0], *popt)
                 if saveArrays:
                     saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
                 saveFitParams(baseFileName+'_fitParams.txt', params)   
