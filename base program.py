@@ -81,7 +81,7 @@ for f in os.listdir("."):
         averagedData, pulseEnergy, P0 = readdata(f)
         
 
-        averagedData = trim(averagedData, -2e-7,1e-6)
+        averagedData = trim(averagedData, -9e9,9e9)
 
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
@@ -105,7 +105,8 @@ for f in os.listdir("."):
         filteredData=np.zeros(np.shape(averagedData))
         filteredData[:,0] = np.copy(averagedData[:,0])
         filteredData[:,1] = butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
-        mobilityDeconvData = trim(filteredData, -1e-6,2e-6)
+        #to stop deconvolution over long periods        
+        mobilityDeconvData = filteredData#trim(filteredData, -1e-6,2e-6)
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
         mobilityIndex = findmaxormin(filteredData)
@@ -188,15 +189,15 @@ for f in os.listdir("."):
         if fitdeconv is False:
             if exponential == 1:
                 guess = [a, t1, offset]
-                popt, pcov, params = fitSingle(filteredData[mobilityIndex:,0],filteredData[mobilityIndex:,1], guess)      
+                popt, pcov, params = fitSingle(normalizedPhiMuArray[mobilityIndex:,0],normalizedPhiMuArray[mobilityIndex:,1], guess)      
             elif exponential == 2:
                 guess = [a, t1, b, t2, offset]
-                popt, pcov, params = fitDouble(filteredData[mobilityIndex:,0],filteredData[mobilityIndex:,1], guess)
+                popt, pcov, params = fitDouble(normalizedPhiMuArray[mobilityIndex:,0],normalizedPhiMuArray[mobilityIndex:,1], guess)
                 t2list.append(popt[3])
                 ablist.append(popt[0]/popt[2])
             elif exponential == 3:
                 guess = [a, t1, b, t2, c, t3, offset]
-                popt, pcov, params = fitTriple(averagedData[filteredData:,0],filteredData[mobilityIndex:,1], guess)
+                popt, pcov, params = fitTriple(normalizedPhiMuArray[mobilityIndex:,0],normalizedPhiMuArray[mobilityIndex:,1], guess)
                 
                 if popt[3]>popt[5]:
                     t3list.append(popt[3])
@@ -207,7 +208,7 @@ for f in os.listdir("."):
                 ablist.append(popt[0]/popt[2])
             if popt is not 0:
                 t1list.append(popt[1])
-                fitArray = generateFitData(exponential, filteredData[mobilityIndex:,0], *popt)
+                fitArray = generateFitData(exponential, normalizedPhiMuArray[mobilityIndex:,0], *popt)
                 if saveArrays:
                     saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
                 saveFitParams(baseFileName+'_fitParams.txt', params)   
