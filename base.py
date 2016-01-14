@@ -6,7 +6,9 @@ Created on Tue Feb 17 15:38:40 2015
 """
 
 from cavityparams import *
-
+import matplotlib as mpl
+#hack; if run with default backend through command prompt get crash at end of program when making plots. PDF seems to work on my system. This should make no difference even if using Spyder because none of these plots are interactive.
+mpl.use('pdf')
 from functions import *
 from mobility import *
 from scipy.constants import *
@@ -16,9 +18,9 @@ from scipy.optimize import curve_fit
 from scipy.stats.distributions import  t
 import matplotlib.pyplot as plt
 import math
-
+import sys
 #to make fonts from plots look normal
-import matplotlib as mpl
+
 #matplotlib.rcParams['mathtext.fontset'] = 'custom'
 #matplotlib.rcParams['mathtext.rm'] = 'Bitstream Vera Sans'
 #matplotlib.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
@@ -42,10 +44,13 @@ mpl.rcParams['ytick.minor.width'] = 1.5
 mpl.rcParams['axes.linewidth'] = 1.5 #set the value globally
 mpl.rcParams['lines.markersize'] = 12  
 
+try:
+    folder=sys.argv[1]
+    print('folder = ', folder, '\n')
+except:
+    print('no folder command line argument\n')
+    folder = input('path containing TRMC data: ')
 
-folder = input('path containing TRMC data: ')
-
-import sys
 sys.path.insert(0, folder)
 from sampleparams import *
 from resonanceparams import *
@@ -56,7 +61,10 @@ from resonanceparams import *
 t1list = []
 t2list = []
 t3list = []
-ablist = []
+a1list = []
+a2list = []
+a3list = []
+#ablist = []
 pulseenergylist = []
 photondensitylist = []
 mobilitylist = []
@@ -81,7 +89,7 @@ for f in os.listdir("."):
         averagedData, pulseEnergy, P0 = readdata(f)
         
 
-        averagedData = trim(averagedData, -2e-7,1e-6)
+        averagedData = trim(averagedData, -9e9,3e-6)
 
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
@@ -98,14 +106,14 @@ for f in os.listdir("."):
         #saveArray(baseFileName+'_combined.csv', averagedData)        
         
         #filter data                
-        cutoff=40e6
+        cutoff=30e6
         fs=20e9
         order=5
         
         filteredData=np.zeros(np.shape(averagedData))
         filteredData[:,0] = np.copy(averagedData[:,0])
         filteredData[:,1] = butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
-        mobilityDeconvData = trim(filteredData, -1e-6,2e-6)
+        mobilityDeconvData = trim(filteredData, -9e9,3e-6)#np.copy(filteredData)#
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
         mobilityIndex = findmaxormin(filteredData)
@@ -163,26 +171,37 @@ for f in os.listdir("."):
                 guess = [a, t1, b, t2, offset]
                 popt, pcov, params = fitDouble(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)  
                 t2list.append(popt[3])
-                ablist.append(popt[0]/popt[2])
+                a2list.append(popt[2])
+                #ablist.append(popt[0]/popt[2])
             elif exponential == 3:
                 guess = [a, t1, b, t2, c, t3, offset]
                 popt, pcov, params = fitTriple(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)  
                 
                 if popt[3]>popt[5]:
                     t3list.append(popt[3])
+                    a3list.append(popt[2])
                     t2list.append(popt[5])
+                    a2list.append(popt[4])
                 else:
                     t2list.append(popt[3])
+                    a2list.append(popt[2])
                     t3list.append(popt[5])
-                ablist.append(popt[0]/popt[2])
+                    a3list.append(popt[4])
+                #ablist.append(popt[0]/popt[2])
             if popt is not 0:
                 t1list.append(popt[1])
+                #def singleExp(x, a, tau, offset):
+                    #return a*np.exp(-(x)/tau) + offset
+                print('fit mu = ', singleExp(deconvolvedDataBinnedNormalized[mobilityDeconvIndex,0], popt[0], popt[1], popt[2]))
+                a1list.append(singleExp(deconvolvedDataBinnedNormalized[mobilityDeconvIndex,0], popt[0], popt[1], popt[2]))
+                #a1list.append(popt[0])
                 fitArray = generateFitData(exponential, deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0], *popt)
                 if saveArrays:
                     saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
                 saveFitParams(baseFileName+'_fitParams.txt', params)   
             else:
                 t1list.append(0)
+                a1list.append(0)
                     #save fit data and fit params 
     
         if fitdeconv is False:
@@ -193,20 +212,30 @@ for f in os.listdir("."):
                 guess = [a, t1, b, t2, offset]
                 popt, pcov, params = fitDouble(filteredData[mobilityIndex:,0],filteredData[mobilityIndex:,1], guess)
                 t2list.append(popt[3])
-                ablist.append(popt[0]/popt[2])
+                a2list.append(popt[2])
+                #ablist.append(popt[0]/popt[2])
             elif exponential == 3:
                 guess = [a, t1, b, t2, c, t3, offset]
-                popt, pcov, params = fitTriple(averagedData[filteredData:,0],filteredData[mobilityIndex:,1], guess)
+                popt, pcov, params = fitTriple(filteredData[filteredData:,0],filteredData[mobilityIndex:,1], guess)
                 
                 if popt[3]>popt[5]:
                     t3list.append(popt[3])
+                    a3list.append(popt[2])
                     t2list.append(popt[5])
+                    a2list.append(popt[4])
                 else:
                     t2list.append(popt[3])
+                    a2list.append(popt[2])
                     t3list.append(popt[5])
-                ablist.append(popt[0]/popt[2])
+                    a3list.append(popt[4])
+                #ablist.append(popt[0]/popt[2])
             if popt is not 0:
                 t1list.append(popt[1])
+                #def singleExp(x, a, tau, offset):
+                    #return a*np.exp(-(x)/tau) + offset
+                print('fit mu = ', singleExp(filteredData[mobilityIndex,0], popt[0], popt[1], popt[2]))
+                a1list.append(singleExp(filteredData[mobilityIndex,0], popt[0], popt[1], popt[2]))
+                #a1list.append(popt[0])
                 fitArray = generateFitData(exponential, filteredData[mobilityIndex:,0], *popt)
                 if saveArrays:
                     saveArray(baseFileName+'_lifetimeFit.csv', fitArray)
@@ -214,6 +243,8 @@ for f in os.listdir("."):
             else:
                 t1list.append(0)
                     #save fit data and fit params            
+
+        print('donefit')
        
        #make plots
         plt.figure(1)
@@ -247,24 +278,28 @@ for f in os.listdir("."):
         plt.close()
         print()
         #write stuff to file
-olddata=True        
+
+      
+
+olddata=False        
 if olddata:
     if exponential == 1:
         summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
     elif exponential == 2:
-        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list]).T
     elif exponential == 3:
-        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
+        summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list]).T
 else:
     if exponential == 1:
-        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list]).T
     elif exponential == 2:
-        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, ablist]).T
+        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list, a2list, t2list]).T
     elif exponential == 3:
-        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list, ablist]).T
-
+        summary = np.array([pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list, a2list, t2list, a3list, t3list]).T
+        
+print('writing summary')  
 saveArray(savefolder + 'summary.csv', summary)
-
+print('savedarray')
 pulseenergylistuJ=np.array(pulseenergylist)/1e-6
 
 #make more plots
@@ -340,6 +375,8 @@ elif exponential == 3:
     plt.savefig(savefolder+'timeconstantratios.png')
     plt.close()
 
+print('done')
+quit()
         
         #to do: deconvolution and fit mobility again, and plot both datas
     
