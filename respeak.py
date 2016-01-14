@@ -20,6 +20,7 @@ def func(f, R0, f0, dW, m, b):
 res_peak_folder = input('path containing res peak data: ')
 
 os.chdir(res_peak_folder)
+
 f='res peak.txt'
 
 respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
@@ -33,6 +34,7 @@ ydata = respeak[:,1]
 
 guess = [.1, 9.015e9, 1e7, 1e-8, 0]
 plt.plot(xdata, ydata)
+
 
 #plt.show()
 try:
