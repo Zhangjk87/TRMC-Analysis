@@ -12,6 +12,7 @@ import os
 from scipy.optimize import curve_fit
 #from scipy.stats.distributions import  t
 import math
+import sys
 
 def func(f, R0, f0, dW, m, b):
     return( (R0 + np.power((2*(f-f0))/dW, 2))/(1+np.power((2*(f-f0))/dW,2)) + m*f + b)
@@ -20,12 +21,19 @@ def back_line(f, m, b):
     return(m*f + b)
     
 #res_peak_folder = 'tempdata'
-res_peak_folder = input('path containing res peak data: ')
+    
+try:
+    res_peak_folder=sys.argv[1]
+    print('res_peak_folder = ', res_peak_folder, '\n')
+except:
+    print('no folder command line argument\n')
+    res_peak_folder = input('path containing TRMC data: ')
+#res_peak_folder = input('path containing res peak data: ')
 
 os.chdir(res_peak_folder)
 f='res peak.txt'
 
-respeak = np.genfromtxt(f, delimiter=',', skip_header=7)
+respeak = np.genfromtxt(f, delimiter=',', skip_header=12)#7)
 #respeak2=trim(respeak, 8.89e9, 8.925e9 )
 #print(respeak)
 #print(np.amax(respeak[:,1]))

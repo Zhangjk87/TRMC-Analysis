@@ -75,7 +75,10 @@ os.chdir(folder)
 
 savefolder=os.path.join('./analysisresults/')
 
-saveArrays = True
+saveArrays = False
+deconvolutionon=True
+filteron=True
+
 
 if not os.path.exists(savefolder):
     os.makedirs(savefolder)
@@ -89,7 +92,7 @@ for f in os.listdir("."):
         averagedData, pulseEnergy, P0 = readdata(f)
         
 
-        averagedData = trim(averagedData, -9e9,3e-6)
+        #averagedData = trim(averagedData, -9e9,3e-6)
 
 
         pulseEnergy = float(pulseEnergy)*lightReachingSample
@@ -104,15 +107,17 @@ for f in os.listdir("."):
 
         #save averaged data that has had its offset fixed
         #saveArray(baseFileName+'_combined.csv', averagedData)        
-        
+        if filteron==True:
         #filter data                
-        cutoff=30e6
-        fs=20e9
-        order=5
-        
-        filteredData=np.zeros(np.shape(averagedData))
-        filteredData[:,0] = np.copy(averagedData[:,0])
-        filteredData[:,1] = butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
+            cutoff=30e6
+            fs=20e9
+            order=5
+            
+            filteredData=np.zeros(np.shape(averagedData))
+            filteredData[:,0] = np.copy(averagedData[:,0])
+            filteredData[:,1] = butter_lowpass_filter(averagedData[:,1], cutoff, fs, order)
+        else:
+            filteredData =np.copy(averagedData)
         mobilityDeconvData =np.copy(filteredData)# #trim(filteredData, -9e9,3e-6)#
         
         #find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
@@ -134,7 +139,11 @@ for f in os.listdir("."):
         if saveArrays:
             saveArray(baseFileName+'PhiMu_Normalized.csv', normalizedPhiMuArray)
         #this part of program does deconvolution
-        deconvolvedData = deconvolve(mobilityDeconvData, responseTime)
+            
+        if deconvolutionon==True:
+            deconvolvedData = deconvolve(mobilityDeconvData, responseTime)
+        else:
+            deconvolvedData=mobilityDeconvData
         print(deconvolvedData)
         #print(np.shape(deconvolvedData))
         deconvolvedDataBinned = deconvolvedData#binData(deconvolvedData, 1)
@@ -350,12 +359,12 @@ elif exponential == 2:
     plt.legend()
     plt.savefig(savefolder+'lifetimes.png')
     plt.close()
-    plt.figure(7)
-    plt.plot(chargelist, ablist, 'o')
-    plt.xlabel('Charge per Quantum Dot')
-    plt.ylabel(r'Ratio of fit amplitudes for $\tau_1/\tau_2$')
-    plt.savefig(savefolder+'timeconstantratios.png')
-    plt.close()
+    #plt.figure(7)
+    #plt.plot(chargelist, ablist, 'o')
+    #plt.xlabel('Charge per Quantum Dot')
+    #plt.ylabel(r'Ratio of fit amplitudes for $\tau_1/\tau_2$')
+    #plt.savefig(savefolder+'timeconstantratios.png')
+    #plt.close()
 elif exponential == 3:
     plt.figure(6, figsize=(8,7))
     plt.plot(chargelist, np.array(t1list)/1e-9, 'o', label=r'$\tau_1$')
@@ -368,12 +377,12 @@ elif exponential == 3:
     #plt.legend()
     plt.savefig(savefolder+'lifetimes.png')
     plt.close()
-    plt.figure(7)
-    plt.plot(chargelist, ablist, 'o')
-    plt.xlabel('Charge per Quantum Dot')
-    plt.ylabel(r'Ratio of fit amplitudes for $\tau_1/\tau_2$')
-    plt.savefig(savefolder+'timeconstantratios.png')
-    plt.close()
+    #plt.figure(7)
+    #plt.plot(chargelist, ablist, 'o')
+    #plt.xlabel('Charge per Quantum Dot')
+    #plt.ylabel(r'Ratio of fit amplitudes for $\tau_1/\tau_2$')
+    #plt.savefig(savefolder+'timeconstantratios.png')
+    #plt.close()
 
 print('done')
 quit()
