@@ -50,10 +50,10 @@ def readdata(f):
     return(TRMCdata, pulseenergy, p0val)
     
 def findmaxormin(array):
-    if (abs(np.amax(array[:,1])) > abs(np.amin(array[:,1]))):
-        return np.argmax(array[:,1])
-    elif (abs(np.amax(array[:,1])) < abs(np.amin(array[:,1]))):
-        return np.argmin(array[:,1])
+    zerotime=np.argwhere(abs(array[:,0])-2.5e-11<1e-17)#1e-16)
+    print(maxlooktime)
+    if (abs(np.amax(array[zerotime:maxlooktime+zerotime,1])) > abs(np.amin(array[zerotime:maxlooktime+zerotime,1]))):
+    elif (abs(np.amax(array[zerotime:maxlooktime+zerotime,1])) < abs(np.amin(array[zerotime:maxlooktime+zerotime,1]))):
     else:
         print("Error in findmaxormin(). Max not less than or greater than min array value.")
         raise RuntimeError('findmaxormin')

@@ -109,7 +109,7 @@ for f in os.listdir("."):
         #saveArray(baseFileName+'_combined.csv', averagedData)        
         if filteron==True:
         #filter data                
-            cutoff=30e6
+            cutoff=15e6
             fs=20e9
             order=5
             
