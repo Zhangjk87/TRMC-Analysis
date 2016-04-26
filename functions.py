@@ -137,6 +137,8 @@ def fitDouble(xdata, ydata, guess):
         return(popt, pcov, params)
     except RuntimeError:
         print("Error - curve_fit failed")
+        return(0,0,0)
+
         
 def fitTriple(xdata, ydata, guess):
     try:
@@ -173,7 +175,8 @@ def fitTriple(xdata, ydata, guess):
         return(popt, pcov, params)
     except RuntimeError:
         print("Error - curve_fit failed")
-        
+        return(0,0,0)
+
 def generateFitData(singleExponential, xdata, *popt):
     if singleExponential==1:
         return (np.array([xdata, singleExp(xdata, *popt)]).T)
@@ -189,7 +192,8 @@ def saveFitParams(f, params):
         newfile.write('\n'.join(params))
         
 def deconvolve(array, cavityLifetime):
-    cavitydecayfft=np.fft.fft(np.exp(-array[:,0]/cavityLifetime)/sum(np.exp(-array[:,0]/cavityLifetime)))
+    #print('called')
+    cavitydecayfft=np.fft.fft(np.exp(-array[:,0]/cavityLifetime)/np.sum(np.exp(-array[:,0]/cavityLifetime)))
     #datafft=np.fft.fft(signal.wiener(array[:,1],mysize=13))
     datafft=np.fft.fft(array[:,1])
     fftconv=np.divide(datafft,cavitydecayfft)

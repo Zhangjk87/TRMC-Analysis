@@ -2,7 +2,7 @@
 
 base.py "C:\Users\Daniel\OneDrive\Kagan Group\Experimental Data\TRMC\20160412\SJ PbS SCN 4 redo"
 base.py "C:\Users\Daniel\OneDrive\Kagan Group\Experimental Data\TRMC\20160412\SJ PbS SCN 3 redo"
-base.py "C:\Users\Daniel\OneDrive\Kagan Group\Experimental Data\TRMC\20160412\SJ PbS SCN 2 redo"
+REM base.py "C:\Users\Daniel\OneDrive\Kagan Group\Experimental Data\TRMC\20160412\SJ PbS SCN 2 redo"
 
 base.py "C:\Users\Daniel\OneDrive\Kagan Group\Experimental Data\TRMC\20160413\SJ PbS BDT 1 redo"
 base.py "C:\Users\Daniel\OneDrive\Kagan Group\Experimental Data\TRMC\20160413\SJ PbS BDT 2 redo"

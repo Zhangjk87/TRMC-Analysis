@@ -104,7 +104,7 @@ for f in os.listdir("."):
         #also must output charge/QD, if necessary        
         photondensitylist.append(photonDensity)
         averagedData = subtractOffset(averagedData)
-
+        
         #save averaged data that has had its offset fixed
         #saveArray(baseFileName+'_combined.csv', averagedData)        
         if filteron==True:
@@ -139,7 +139,7 @@ for f in os.listdir("."):
         if saveArrays:
             saveArray(baseFileName+'PhiMu_Normalized.csv', normalizedPhiMuArray)
         #this part of program does deconvolution
-            
+        print('arraylength=', np.shape(mobilityDeconvData))
         if deconvolutionon==True:
             deconvolvedData = deconvolve(mobilityDeconvData, responseTime)
         else:
@@ -179,23 +179,32 @@ for f in os.listdir("."):
             elif exponential == 2:
                 guess = [a, t1, b, t2, offset]
                 popt, pcov, params = fitDouble(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)  
-                t2list.append(popt[3])
-                a2list.append(popt[2])
+                if popt is not 0:
+                    t2list.append(popt[3])
+                    a2list.append(popt[2])
+                else:
+                    t2list.append(0)
+                    a2list.append(0)
                 #ablist.append(popt[0]/popt[2])
             elif exponential == 3:
                 guess = [a, t1, b, t2, c, t3, offset]
                 popt, pcov, params = fitTriple(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,0],deconvolvedDataBinnedNormalized[mobilityDeconvIndex:,1], guess)  
-                
-                if popt[3]>popt[5]:
-                    t3list.append(popt[3])
-                    a3list.append(popt[2])
-                    t2list.append(popt[5])
-                    a2list.append(popt[4])
+                if popt is not 0:
+                    if popt[3]>popt[5]:
+                        t3list.append(popt[3])
+                        a3list.append(popt[2])
+                        t2list.append(popt[5])
+                        a2list.append(popt[4])
+                    else:
+                        t2list.append(popt[3])
+                        a2list.append(popt[2])
+                        t3list.append(popt[5])
+                        a3list.append(popt[4])
                 else:
-                    t2list.append(popt[3])
-                    a2list.append(popt[2])
-                    t3list.append(popt[5])
-                    a3list.append(popt[4])
+                        t3list.append(0)
+                        a3list.append(0)
+                        t2list.append(0)
+                        a2list.append(0)
                 #ablist.append(popt[0]/popt[2])
             if popt is not 0:
                 t1list.append(popt[1])
