@@ -51,9 +51,12 @@ def readdata(f):
     
 def findmaxormin(array):
     zerotime=np.argwhere(abs(array[:,0])-2.5e-11<1e-17)#1e-16)
+    maxlooktime=int(np.argwhere(abs(array[zerotime:,0])-250e-9>0)[0])
     print(maxlooktime)
     if (abs(np.amax(array[zerotime:maxlooktime+zerotime,1])) > abs(np.amin(array[zerotime:maxlooktime+zerotime,1]))):
+        return int(np.argmax(array[zerotime:maxlooktime+zerotime,1])+zerotime)
     elif (abs(np.amax(array[zerotime:maxlooktime+zerotime,1])) < abs(np.amin(array[zerotime:maxlooktime+zerotime,1]))):
+        return int(np.argmin(array[zerotime:maxlooktime+zerotime,1])+zerotime)
     else:
         print("Error in findmaxormin(). Max not less than or greater than min array value.")
         raise RuntimeError('findmaxormin')
