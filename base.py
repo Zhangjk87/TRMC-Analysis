@@ -1,13 +1,9 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Feb 17 15:38:40 2015
-
-@author: Daniel
-"""
-
 from cavityparams import *
 import matplotlib as mpl
-#hack; if run with default backend through command prompt get crash at end of program when making plots. PDF seems to work on my system. This should make no difference even if using Spyder because none of these plots are interactive.
+
+# hack; if run with default backend through command prompt get crash at end of program when making plots.
+# PDF seems to work on my system. This should make no difference even if using Spyder because none of these
+# plots are interactive.
 mpl.use('pdf')
 from functions import *
 from mobility import *
@@ -19,14 +15,14 @@ from scipy.stats.distributions import  t
 import matplotlib.pyplot as plt
 import math
 import sys
-#to make fonts from plots look normal
+# to make fonts from plots look normal
 
-#matplotlib.rcParams['mathtext.fontset'] = 'custom'
-#matplotlib.rcParams['mathtext.rm'] = 'Bitstream Vera Sans'
-#matplotlib.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
-#matplotlib.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
-#matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
-#matplotlib.rcparams()
+# matplotlib.rcParams['mathtext.fontset'] = 'custom'
+# matplotlib.rcParams['mathtext.rm'] = 'Bitstream Vera Sans'
+# matplotlib.rcParams['mathtext.it'] = 'Bitstream Vera Sans:italic'
+# matplotlib.rcParams['mathtext.bf'] = 'Bitstream Vera Sans:bold'
+# matplotlib.rc('font', **{'sans-serif' : 'Arial', 'family' : 'sans-serif'})
+# matplotlib.rcparams()
 font = {'family' : 'normal',
         'weight' : 'normal',
         'size'   : 26}

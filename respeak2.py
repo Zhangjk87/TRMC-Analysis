@@ -28,69 +28,26 @@ try:
 except:
     print('no folder command line argument\n')
     res_peak_folder = input('path containing TRMC data: ')
-#res_peak_folder = input('path containing res peak data: ')
 
 os.chdir(res_peak_folder)
-f='res peak.txt'
+file_name='respeak.txt'
 
-respeak = np.genfromtxt(f, delimiter=',', skip_header=12)#7)
-#respeak2=trim(respeak, 8.89e9, 8.925e9 )
-#print(respeak)
-#print(np.amax(respeak[:,1]))
+respeak = np.genfromtxt(file_name, delimiter=',', skip_header=12)
 
-#backgroundx = []
-#for i in range(10):
-#    j = np.argmin(respeak[:,0]) + i
-#    print(j)
-#    backgroundx.append(respeak[j,0])
-#    
-#for i in np.arange(10):
-#    j = np.argmax(respeak[:,0:-1]) - i
-#    print(j)
-#    backgroundx.append(respeak[j,0])
-#    
-#backgroundy = []
-#for i in range(10):
-#    j = respeak[:,0] + i
-#    backgroundy.append(respeak[j,1])
-#    
-#for i in np.arange(10):
-#    j = np.argmax(respeak[:,0:-1]) - i
-#    print(j)
-#    backgroundy.append(respeak[j,1])
-#    
-
-#now finds min frequency automatically
+# now finds min frequency automatically
 guess = [.1, 0, 1e7, 1e-8, 0]
 
 respeak[:,1] = np.power(respeak[:,1], 2)/50
-respeak[:,1] = np.divide(respeak[:,1], np.amax(respeak[:,1])) #normalize resonance peak so maximum at 1
+respeak[:,1] = np.divide(respeak[:,1], np.amax(respeak[:,1]))  # normalize resonance peak so maximum at 1
 xdata = respeak[:,0]
 ydata = respeak[:,1]
 
 guess[1] = xdata[np.argmin(ydata)]
 
-backgroundx = np.array(respeak[0:50,0])# + respeak[-1:-9, 0]])
-backgroundy = np.array(respeak[0:50,1])# + respeak[-1:-9, 1]])
+backgroundx = np.array(respeak[0:50,0])  # + respeak[-1:-9, 0]])
+backgroundy = np.array(respeak[0:50,1])  # + respeak[-1:-9, 1]])
 backgroundx = np.append(backgroundx, respeak[-50:, 0])
-backgroundy = np.append(backgroundy, respeak[-50:, 1]) 
-  
-#start = np.argmin(respeak[:,0])
-#end = np.argmax(respeak[:,0])
-#print('start = ',start)
-#print(respeak[start,0])
-#print(respeak[start,1])
-#print(respeak[end,0])
-#print(respeak[end,1])
-
-#print(backgroundx)
-#print(backgroundy)
-
-#background = []
-#background = np.c_[backgroundx, backgroundy]
-#print(background)
-#background = background.T
-#print(background)
+backgroundy = np.append(backgroundy, respeak[-50:, 1])
 
 line_guess = [-2e9, 0]
 
