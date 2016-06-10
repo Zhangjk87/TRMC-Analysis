@@ -1,4 +1,3 @@
-from cavityparams import *
 import matplotlib as mpl
 
 # hack; if run with default backend through command prompt get crash at end of program when making plots.
@@ -44,14 +43,14 @@ def tripleExp(x, a, t1, b, t2, c, t3, offset):
     return a * np.exp(-(x) / t1) + b * np.exp(-(x) / t2) + c * np.exp(-(x) / t3) + offset
 
 
-def readdata(f):
+def readdata(folder, f):
     print(f)
     print(f[f.index('_') + 1:f.index('J')], 'J')  # current laser power
     pulseenergy = float(f[f.index('nm_') + 3:f.index('J')])
     p0 = f[f.index('p0_') + 3:f.index('V')]  # current laser power
     print('P0 = ' + p0 + 'V')
     p0val = float(p0)
-    TRMCdata = np.genfromtxt(f, delimiter=',', skip_header=4, usecols=(0, 1))
+    TRMCdata = np.genfromtxt(os.path.join(folder, f), delimiter=',', skip_header=4, usecols=(0, 1))
     # tempTRMCdata = np.genfromtxt(f[:f.index('_p0')]+ '_' ++'_p0_' + p0 + 'V.csv', delimiter=',', skip_header=4, usecols=(0,2))
     # TRMCdata[:,1] = np.add(TRMCdata[:,1], tempTRMCdata[:,1])
     # TRMCdata[:,1] = np.divide(TRMCdata[:,1], numberofarrays)
@@ -252,6 +251,56 @@ def butter_lowpass_filter(data, cutoff, fs, order):
     y = scipy.signal.lfilter(b, a, data)
     return y
 
+    
+def mobility(dP, laserPower, folder, P0, sample_params_dict, Q, R0, responseTime, f0):
+
+    config = configparser.RawConfigParser()
+    config.read('config.ini')
+    cavity_params_dict = dict(config.items('Cavity Params'))
+    for keys in cavity_params_dict:
+        cavity_params_dict[keys] = float(cavity_params_dict[keys])
+    #correction for dP/P=ndV/V    
+    dPCorrection = 1.42
+    dP=dPCorrection*dP    
+    
+    pi=math.pi
+    e0=epsilon_0#farads/meter
+    q=e
+    freq = c/(sample_params_dict['wavelength']) #Hz
+    photonenergy = h*freq
+    #print(photonenergy)#in J
+    #J/photon, this is for 532nm right now
+    #For now what this will do is just put dP in here, and it will calculate a mobility. Next step is build this into the fitting program for one click data analysis
+    
+    if dP<0:
+        sign = 1
+    else:
+        sign = -1
+        
+    print('sign = ', sign)
+    
+    beta = cavity_params_dict['a']/cavity_params_dict['b']
+    
+    #dP=0.0014#volts
+    #laserPower=    #J/pulse on power meter
+    
+    spotarea=pi*(sample_params_dict['spotdiameter']/2)**2#m^2
+    #laserpower read in in joules
+    #print(laserPower)
+    I0=laserPower/photonenergy/spotarea
+    print('I0 = '+str(I0))
+    #print(format(I0, "e"))
+    #careful with signs
+    print('dP = ' + str(dP))
+    K=sign*Q*(1/np.sqrt(R0)+sign*1)/(beta*e0*sample_params_dict['er']*f0*pi*cavity_params_dict['l']) #see absorption vs emission; I'm assume p0 is negative since that's what we get out of the detector, and a negative dP corresponds to an absorption with HP 462A amplifier
+    print('K = ' + str(K))
+    dG=sample_params_dict['illuminationfactor']*dP/P0/K
+    #print(dG)
+    
+    phimu=dG/beta/I0/sample_params_dict['fa']/q/1e-4
+    print('mu = ' + str(phimu))
+    return(phimu,I0, dPCorrection*sample_params_dict['illuminationfactor']/P0/K/I0/sample_params_dict['fa']/q/beta/1e-4)        
+
 
 def main(argv):
 
@@ -275,17 +324,26 @@ def main(argv):
     try:
         folder = sys.argv[1]
         print('folder = ', folder, '\n')
-    except:
+    except IndexError:
         print('no folder command line argument\n')
         folder = input('path containing TRMC data: ')
 
+    # import sample params into dict
     config = configparser.RawConfigParser()
     config.read('config.ini')
+    sample_params_dict = dict(config.items('Sample Params'))
+    for keys in sample_params_dict:
+        sample_params_dict[keys] = float(sample_params_dict[keys])
+    sample_params_dict['lightReachingSample'] = 5.56*0.906*10**-1*sample_params_dict['od_magnitude']*0.92307525
+    sample_params_dict['radius'] = 4.6e-9/2
 
 
-
-    from sampleparams import *
-    from resonanceparams import *
+    # import resonance params
+    with open(os.path.join(folder, 'resonance_params.csv'), 'r') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        next(reader, None)
+        for row in reader:
+            Q, R0, responseTime, f0 = list(map(float, row))
 
     # exponential=1
 
@@ -303,34 +361,33 @@ def main(argv):
     mobilitydeconvlist = []
     chargelist = []
 
-    os.chdir(folder)
-
-    savefolder = os.path.join('./analysisresults/')
+    savefolder = folder + '/analysisresults/'
+    print(savefolder)
+    if not os.path.isdir(savefolder):
+        os.makedirs(savefolder)
 
     saveArrays = False
     deconvolutionon = True
     filteron = True
 
-    if not os.path.exists(savefolder):
-        os.makedirs(savefolder)
-
     # main program block
-    for f in os.listdir("."):
-        filenameconditions = 'AVG' not in f and 'decay' not in f and 'res' not in f and '.png' not in f and 'fit' not in f and '.csv' in f and 'J_' in f and '_p0' in f
+    for file in os.listdir(folder):
+        filenameconditions = 'AVG' not in file and 'decay' not in file and 'res' \
+                             not in file and '.png' not in file and 'fileit' not in file \
+                             and '.csv' in file and 'J_' in file and '_p0' in file
         if filenameconditions:
-            baseFileName = savefolder + f[:f.index('_p0')]
-            print(f)
-            averagedData, pulseEnergy, P0 = readdata(f)
+            baseFileName = savefolder + file[:file.index('_p0')]
+            averagedData, pulseEnergy, P0 = readdata(folder, file)
 
             # averagedData = trim(averagedData, -9e9,3e-6)
 
 
-            pulseEnergy = float(pulseEnergy) * lightReachingSample
+            pulseEnergy = float(pulseEnergy) * sample_params_dict['lightReachingSample']
             pulseenergylist.append(pulseEnergy)
-            freq = c / (wavelength)  # Hz
+            freq = c / (sample_params_dict['wavelength'])  # Hz
             photonenergy = h * freq
-            spotarea = pi * (spotdiameter / 2) ** 2  # m^2
-            photonDensity = pulseEnergy / photonenergy / spotarea * Fa / 100 ** 2  # photons/cm^2
+            spotarea = pi * (sample_params_dict['spotdiameter'] / 2) ** 2  # m^2
+            photonDensity = pulseEnergy / photonenergy / spotarea * sample_params_dict['fa'] / 100 ** 2  # photons/cm^2
             # also must output charge/QD, if necessary
             photondensitylist.append(photonDensity)
             averagedData = subtractOffset(averagedData)
@@ -357,8 +414,8 @@ def main(argv):
             print('dp=', dP)
 
             # mobility
-            correctedP0 = P0 - P0offset
-            phimu, I0, PhiMuNormalization = mobility(dP, pulseEnergy, folder, correctedP0)
+            correctedP0 = P0 - sample_params_dict['p0offset']
+            phimu, I0, PhiMuNormalization = mobility(dP, pulseEnergy, folder, correctedP0, sample_params_dict, Q, R0, responseTime, f0)
             mobilitylist.append(phimu)
 
             normalizedPhiMuArray = np.zeros(np.shape(filteredData))
@@ -390,22 +447,27 @@ def main(argv):
             print('mobilityDeconvIndex=' + str(mobilityDeconvIndex))
             dPDeconv = deconvolvedDataBinned[mobilityDeconvIndex, 1]
             print('dPDeconv = ' + str(dPDeconv))
-            phimudeconv, ignore, ignore2 = mobility(dPDeconv, pulseEnergy, folder, correctedP0)
+            phimudeconv, ignore, ignore2 = mobility(dPDeconv, pulseEnergy, folder, correctedP0, sample_params_dict, Q, R0, responseTime, f0)
             mobilitydeconvlist.append(phimudeconv)
-            charge = chargePerQD(I0, Fa, radius, packingFraction, thickness)
+            charge = chargePerQD(I0, sample_params_dict['fa'],
+                                 sample_params_dict['radius'],
+                                 sample_params_dict['packingfraction'],
+                                 sample_params_dict['thickness'])
             chargelist.append(charge)
             # chargelist.append(0)
 
 
             # to do: fit lifetime here
+            exponential = sample_params_dict['exponential']
             fitdeconv = True
             if fitdeconv is True:
                 if exponential == 1:
-                    guess = [a, t1, offset]
+                    guess = [a, sample_params_dict['t1'], sample_params_dict['offset']]
                     popt, pcov, params = fitSingle(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 0],
                                                    deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 1], guess)
                 elif exponential == 2:
-                    guess = [a, t1, b, t2, offset]
+                    guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['b'],
+                             sample_params_dict['t2'], sample_params_dict['offset']]
                     popt, pcov, params = fitDouble(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 0],
                                                    deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 1], guess)
                     if popt is not 0:
@@ -416,7 +478,9 @@ def main(argv):
                         a2list.append(0)
                         # ablist.append(popt[0]/popt[2])
                 elif exponential == 3:
-                    guess = [a, t1, b, t2, c, t3, offset]
+                    guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['b'],
+                            sample_params_dict['t2'], sample_params_dict['c'], sample_params_dict['t3'],
+                            sample_params_dict['offset']]
                     popt, pcov, params = fitTriple(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 0],
                                                    deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 1], guess)
                     if popt is not 0:
@@ -447,7 +511,7 @@ def main(argv):
                     # a1list.append(popt[0])
                     fitArray = generateFitData(exponential, deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 0], *popt)
                     if saveArrays:
-                        saveArray(baseFileName + '_lifetimeFit.csv', fitArray)
+                        saveArray(folder + baseFileName + '_lifetimeFit.csv', fitArray)
                     saveFitParams(baseFileName + '_fitParams.txt', params)
                 else:
                     t1list.append(0)
@@ -456,16 +520,19 @@ def main(argv):
 
             if fitdeconv is False:
                 if exponential == 1:
-                    guess = [a, t1, offset]
+                    guess = [a, sample_params_dict['t1'], sample_params_dict['offset']]
                     popt, pcov, params = fitSingle(filteredData[mobilityIndex:, 0], filteredData[mobilityIndex:, 1], guess)
                 elif exponential == 2:
-                    guess = [a, t1, b, t2, offset]
+                    guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['b'],
+                             sample_params_dict['t2'], sample_params_dict['offset']]
                     popt, pcov, params = fitDouble(filteredData[mobilityIndex:, 0], filteredData[mobilityIndex:, 1], guess)
                     t2list.append(popt[3])
                     a2list.append(popt[2])
                     # ablist.append(popt[0]/popt[2])
                 elif exponential == 3:
-                    guess = [a, t1, b, t2, c, t3, offset]
+                    guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['b'],
+                            sample_params_dict['t2'], sample_params_dict['c'], sample_params_dict['t3'],
+                            sample_params_dict['offset']]
                     popt, pcov, params = fitTriple(filteredData[filteredData:, 0], filteredData[mobilityIndex:, 1], guess)
 
                     if popt[3] > popt[5]:
@@ -531,6 +598,7 @@ def main(argv):
             # write stuff to file
 
     olddata = False
+    exponential = sample_params_dict['exponential']
     if olddata:
         if exponential == 1:
             summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
@@ -629,7 +697,7 @@ def main(argv):
         # plt.close()
 
     print('done')
-    quit()
+
 
 if __name__ == '__main__':
     main(sys.argv[1:])
