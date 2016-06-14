@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Created on Wed Jan 14 09:39:21 2015
-
 @author: Daniel
 """
 

@@ -4,19 +4,16 @@ import matplotlib as mpl
 # PDF seems to work on my system. This should make no difference even if using Spyder because none of these
 # plots are interactive.
 mpl.use('pdf')
-from functions import *
-from mobility import *
-from scipy.constants import *
+import scipy.constants
 import os
 import numpy as np
-from scipy.optimize import curve_fit
-from scipy.stats.distributions import t
 import matplotlib.pyplot as plt
 import scipy.signal
 import math
 import sys
 import configparser
 import csv
+import scipy as sp
 
 
 def trim(mydata, minwavenumber, maxwavenumber):
@@ -88,7 +85,7 @@ def saveArray(f, array):
 
 def fitSingle(xdata, ydata, guess):
     try:
-        popt, pcov = curve_fit(singleExp, xdata.T, ydata.T, p0=guess)
+        popt, pcov = sp.optimize.curve_fit(singleExp, xdata.T, ydata.T, p0=guess)
 
         print('a = ' + str(popt[0]))
         print('t1 = ' + str(popt[1]))
@@ -107,7 +104,7 @@ def fitSingle(xdata, ydata, guess):
         dof = max(0, n - p)  # number of degrees of freedom
 
         # student-t value for the dof and confidence level
-        tval = t.ppf(1.0 - alpha / 2., dof)
+        tval = sp.stats.distributions.t.ppf(1.0 - alpha / 2., dof)
         params = []
         for i, p, var in zip(range(n), popt, np.diag(pcov)):
             sigma = var ** 0.5
@@ -123,7 +120,7 @@ def fitSingle(xdata, ydata, guess):
 
 def fitDouble(xdata, ydata, guess):
     try:
-        popt, pcov = curve_fit(doubleExp, xdata.T, ydata.T, p0=guess)
+        popt, pcov = sp.optimize.curve_fit(doubleExp, xdata.T, ydata.T, p0=guess)
         print('a = ' + str(popt[0]))
         print('t1 = ' + str(popt[1]))
         print('b = ' + str(popt[2]))
@@ -143,7 +140,7 @@ def fitDouble(xdata, ydata, guess):
         dof = max(0, n - p)  # number of degrees of freedom
 
         # student-t value for the dof and confidence level
-        tval = t.ppf(1.0 - alpha / 2., dof)
+        tval = sp.stats.distributions.t.ppf(1.0 - alpha / 2., dof)
         params = []
         for i, p, var in zip(range(n), popt, np.diag(pcov)):
             sigma = var ** 0.5
@@ -159,7 +156,7 @@ def fitDouble(xdata, ydata, guess):
 
 def fitTriple(xdata, ydata, guess):
     try:
-        popt, pcov = curve_fit(tripleExp, xdata.T, ydata.T, p0=guess)
+        popt, pcov = sp.optimize.curve_fit(tripleExp, xdata.T, ydata.T, p0=guess)
         print('a = ' + str(popt[0]))
         print('t1 = ' + str(popt[1]))
         print('b = ' + str(popt[2]))
@@ -181,7 +178,7 @@ def fitTriple(xdata, ydata, guess):
         dof = max(0, n - p)  # number of degrees of freedom
 
         # student-t value for the dof and confidence level
-        tval = t.ppf(1.0 - alpha / 2., dof)
+        tval = sp.stats.distriutions.t.ppf(1.0 - alpha / 2., dof)
         params = []
         for i, p, var in zip(range(n), popt, np.diag(pcov)):
             sigma = var ** 0.5
@@ -242,30 +239,34 @@ def chargePerQD(I0, Fa, radius, packingFraction, thickness):
 def butter_lowpass(cutoff, fs, order):
     nyq = 0.5 * fs
     normal_cutoff = cutoff / nyq
-    b, a = scipy.signal.butter(order, normal_cutoff, btype='low', analog=False)
+    b, a = sp.signal.butter(order, normal_cutoff, btype='low', analog=False)
     return b, a
 
 
 def butter_lowpass_filter(data, cutoff, fs, order):
     b, a = butter_lowpass(cutoff, fs, order=order)
-    y = scipy.signal.lfilter(b, a, data)
+    y = sp.signal.lfilter(b, a, data)
     return y
 
     
 def mobility(dP, laserPower, folder, P0, sample_params_dict, Q, R0, responseTime, f0):
 
+    pi=math.pi
+
     config = configparser.RawConfigParser()
     config.read('config.ini')
+    e0 = config.getfloat('Constants', 'e0')
+    q = config.getfloat('Constants', 'q')
+    c = config.getfloat('Constants', 'c')
+    h = config.getfloat('Constants', 'h')
+
     cavity_params_dict = dict(config.items('Cavity Params'))
     for keys in cavity_params_dict:
         cavity_params_dict[keys] = float(cavity_params_dict[keys])
     #correction for dP/P=ndV/V    
     dPCorrection = 1.42
     dP=dPCorrection*dP    
-    
-    pi=math.pi
-    e0=epsilon_0#farads/meter
-    q=e
+
     freq = c/(sample_params_dict['wavelength']) #Hz
     photonenergy = h*freq
     #print(photonenergy)#in J
@@ -334,7 +335,7 @@ def main(argv):
     sample_params_dict = dict(config.items('Sample Params'))
     for keys in sample_params_dict:
         sample_params_dict[keys] = float(sample_params_dict[keys])
-    sample_params_dict['lightReachingSample'] = 5.56*0.906*10**-1*sample_params_dict['od_magnitude']*0.92307525
+    sample_params_dict['lightReachingSample'] = 5.56*0.906*10**(-1*sample_params_dict['od_magnitude'])*0.92307525
     sample_params_dict['radius'] = 4.6e-9/2
 
 
@@ -366,9 +367,17 @@ def main(argv):
     if not os.path.isdir(savefolder):
         os.makedirs(savefolder)
 
-    saveArrays = False
-    deconvolutionon = True
-    filteron = True
+    analysis_params = []
+
+    for key, param in config.items('Analysis Params'):
+        if param == 'True':
+            analysis_params.append(True)
+        elif param == 'False':
+            analysis_params.append(False)
+        else:
+            raise ValueError
+
+    saveArrays, deconvolutionon, filteron, fitdeconv, olddata = tuple(analysis_params)
 
     # main program block
     for file in os.listdir(folder):
@@ -381,12 +390,14 @@ def main(argv):
 
             # averagedData = trim(averagedData, -9e9,3e-6)
 
+            c = config.getfloat('Constants', 'c')
+            h = config.getfloat('Constants', 'h')
 
             pulseEnergy = float(pulseEnergy) * sample_params_dict['lightReachingSample']
             pulseenergylist.append(pulseEnergy)
             freq = c / (sample_params_dict['wavelength'])  # Hz
             photonenergy = h * freq
-            spotarea = pi * (sample_params_dict['spotdiameter'] / 2) ** 2  # m^2
+            spotarea = np.pi * (sample_params_dict['spotdiameter'] / 2) ** 2  # m^2
             photonDensity = pulseEnergy / photonenergy / spotarea * sample_params_dict['fa'] / 100 ** 2  # photons/cm^2
             # also must output charge/QD, if necessary
             photondensitylist.append(photonDensity)
@@ -405,6 +416,7 @@ def main(argv):
                 filteredData[:, 1] = butter_lowpass_filter(averagedData[:, 1], cutoff, fs, order)
             else:
                 filteredData = np.copy(averagedData)
+
             mobilityDeconvData = np.copy(filteredData)  # #trim(filteredData, -9e9,3e-6)#
 
             # find max signal point. One may want to "bin" the data beforehand to reduce the influence of noise
@@ -459,10 +471,10 @@ def main(argv):
 
             # to do: fit lifetime here
             exponential = sample_params_dict['exponential']
-            fitdeconv = True
+
             if fitdeconv is True:
                 if exponential == 1:
-                    guess = [a, sample_params_dict['t1'], sample_params_dict['offset']]
+                    guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['offset']]
                     popt, pcov, params = fitSingle(deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 0],
                                                    deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 1], guess)
                 elif exponential == 2:
@@ -520,7 +532,7 @@ def main(argv):
 
             if fitdeconv is False:
                 if exponential == 1:
-                    guess = [a, sample_params_dict['t1'], sample_params_dict['offset']]
+                    guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['offset']]
                     popt, pcov, params = fitSingle(filteredData[mobilityIndex:, 0], filteredData[mobilityIndex:, 1], guess)
                 elif exponential == 2:
                     guess = [sample_params_dict['a'], sample_params_dict['t1'], sample_params_dict['b'],
@@ -597,30 +609,62 @@ def main(argv):
             print()
             # write stuff to file
 
-    olddata = False
     exponential = sample_params_dict['exponential']
-    if olddata:
-        if exponential == 1:
-            summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
-        elif exponential == 2:
-            summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list]).T
-        elif exponential == 3:
-            summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list]).T
-    else:
-        if exponential == 1:
-            summary = np.array(
-                [pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list]).T
-        elif exponential == 2:
-            summary = np.array(
-                [pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list, a2list,
-                 t2list]).T
-        elif exponential == 3:
-            summary = np.array(
-                [pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list, a2list,
-                 t2list, a3list, t3list]).T
+    with open(os.path.join(savefolder, 'summary.csv'), 'w', newline='') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
+        if olddata:
+            if exponential == 1:
+                summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list]).T
+                writer.writerow(
+                    ['Pulse Energy List'] + ['Charge List'] + ['Mobility List'] + ['Mobility Deconvoled List'] +
+                    ['t1 list'])
 
-    print('writing summary')
-    saveArray(savefolder + 'summary.csv', summary)
+            elif exponential == 2:
+                summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list]).T
+                writer.writerow(
+                    ['Pulse Energy List'] + ['Charge List'] +
+                    ['Mobility List'] + ['Mobility Deconvolved List'] + ['t1 list'] +
+                    ['t2 list'])
+
+            elif exponential == 3:
+                summary = np.array([pulseenergylist, chargelist, mobilitylist, mobilitydeconvlist, t1list, t2list, t3list]).T
+                writer.writerow(
+                    ['Pulse Energy List'] + ['Charge List'] +
+                    ['Mobility List'] + ['Mobility Deconvolved List'] + ['t1 list'] +
+                    ['t2 list'] + ['t3 list'])
+        else:
+            if exponential == 1:
+                summary = np.array(
+                    [pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list]).T
+                writer.writerow(
+                    ['Pulse Energy List'] + ['Photon Density List'] + ['Charge List'] +
+                    ['Mobility List'] + ['Mobility Deconvolved List'] + ['a1 list'] +
+                    ['t1 list'])
+
+            elif exponential == 2:
+                summary = np.array(
+                    [pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list, a2list,
+                     t2list]).T
+                writer.writerow(
+                    ['Pulse Energy List'] + ['Photon Density List'] + ['Charge List'] +
+                    ['Mobility List'] + ['Mobility Deconvoled List'] + ['a1 list'] +
+                    ['t1 list'] + ['a2 list'] + ['t2 list'])
+
+            elif exponential == 3:
+                summary = np.array(
+                    [pulseenergylist, photondensitylist, chargelist, mobilitylist, mobilitydeconvlist, a1list, t1list, a2list,
+                     t2list, a3list, t3list]).T
+                writer.writerow(
+                    ['Pulse Energy List'] + ['Photon Density List'] + ['Charge List'] +
+                    ['Mobility List'] + ['Mobility Deconvolved List'] + ['a1 list'] +
+                    ['t1 list'] + ['a2 list'] + ['t2 list'] + ['a3 list'] + ['t3 list'])
+
+        print('writing summary')
+
+        for row in summary:
+            writer.writerow(row)
+
+    # saveArray(savefolder + 'summary.csv', summary)
     print('savedarray')
     pulseenergylistuJ = np.array(pulseenergylist) / 1e-6
 
