@@ -79,8 +79,8 @@ def subtractOffset(array):
     return array
 
 
-def saveArray(f, array):
-    np.savetxt(f, array, delimiter=',')
+def saveArray(folder, f, array):
+    np.savetxt(os.path.join(folder, f), array, delimiter=',')
 
 
 def fitSingle(xdata, ydata, guess):
@@ -178,7 +178,7 @@ def fitTriple(xdata, ydata, guess):
         dof = max(0, n - p)  # number of degrees of freedom
 
         # student-t value for the dof and confidence level
-        tval = sp.stats.distriutions.t.ppf(1.0 - alpha / 2., dof)
+        tval = sp.stats.distributions.t.ppf(1.0 - alpha / 2., dof)
         params = []
         for i, p, var in zip(range(n), popt, np.diag(pcov)):
             sigma = var ** 0.5
@@ -336,7 +336,6 @@ def main(argv):
     for keys in sample_params_dict:
         sample_params_dict[keys] = float(sample_params_dict[keys])
     sample_params_dict['lightReachingSample'] = 5.56*0.906*10**(-1*sample_params_dict['od_magnitude'])*0.92307525
-    sample_params_dict['radius'] = 4.6e-9/2
 
 
     # import resonance params
@@ -434,7 +433,7 @@ def main(argv):
             normalizedPhiMuArray[:, 0] = filteredData[:, 0]
             normalizedPhiMuArray[:, 1] = filteredData[:, 1] * PhiMuNormalization
             if saveArrays:
-                saveArray(baseFileName + 'PhiMu_Normalized.csv', normalizedPhiMuArray)
+                saveArray(savefolder, baseFileName + 'PhiMu_Normalized.csv', normalizedPhiMuArray)
             # this part of program does deconvolution
             print('arraylength=', np.shape(mobilityDeconvData))
             if deconvolutionon == True:
@@ -447,7 +446,7 @@ def main(argv):
             deconvolvedDataBinnedNormalized = np.copy(deconvolvedDataBinned)
             deconvolvedDataBinnedNormalized[:, 1] = deconvolvedDataBinnedNormalized[:, 1] * PhiMuNormalization
             if saveArrays:
-                saveArray(baseFileName + '_combined_deconvolved.csv', deconvolvedDataBinnedNormalized)
+                saveArray(savefolder, baseFileName + '_combined_deconvolved.csv', deconvolvedDataBinnedNormalized)
 
             # plt.plot(deconvolvedData[:,0], deconvolvedData[:,1])
             #        plt.plot(deconvolvedDataBinned[:,0], deconvolvedDataBinned[:,1])
@@ -523,7 +522,7 @@ def main(argv):
                     # a1list.append(popt[0])
                     fitArray = generateFitData(exponential, deconvolvedDataBinnedNormalized[mobilityDeconvIndex:, 0], *popt)
                     if saveArrays:
-                        saveArray(folder + baseFileName + '_lifetimeFit.csv', fitArray)
+                        saveArray(savefolder, folder + baseFileName + '_lifetimeFit.csv', fitArray)
                     saveFitParams(baseFileName + '_fitParams.txt', params)
                 else:
                     t1list.append(0)
@@ -567,7 +566,7 @@ def main(argv):
                     # a1list.append(popt[0])
                     fitArray = generateFitData(exponential, filteredData[mobilityIndex:, 0], *popt)
                     if saveArrays:
-                        saveArray(baseFileName + '_lifetimeFit.csv', fitArray)
+                        saveArray(savefolder, baseFileName + '_lifetimeFit.csv', fitArray)
                     saveFitParams(baseFileName + '_fitParams.txt', params)
                 else:
                     t1list.append(0)
